@@ -1,0 +1,1801 @@
+#!/usr/bin/env python3
+"""Build content/modules.json and content/flashcards.json.
+
+All explanations and questions are original wording for personal study.
+Facts were checked against public sources listed in SOURCES at the bottom
+(and copied into the README). This file does not copy NetAcad or exam dumps.
+"""
+from __future__ import annotations
+
+import json
+from pathlib import Path
+
+OUT = Path(__file__).resolve().parents[1] / "content"
+
+
+def mid(n: int, kind: str, i: int) -> str:
+    return f"m{n:02d}-{kind}{i:02d}"
+
+
+def module(num: int, title: str, blurb: str, cards: list, quiz: list) -> dict:
+    cs = []
+    for i, c in enumerate(cards, 1):
+        item = {"id": mid(num, "c", i), "title": c["title"], "body": c["body"]}
+        if c.get("analogy"):
+            item["analogy"] = c["analogy"]
+        cs.append(item)
+    qs = []
+    for i, q in enumerate(quiz, 1):
+        assert len(q["options"]) == 4, (num, i, q)
+        assert 0 <= q["answer"] < 4
+        qs.append({
+            "id": mid(num, "q", i),
+            "q": q["q"],
+            "options": q["options"],
+            "answer": q["answer"],
+            "why": q["why"],
+        })
+    return {
+        "id": f"m{num:02d}",
+        "number": num,
+        "title": title,
+        "blurb": blurb,
+        "cards": cs,
+        "quiz": qs,
+    }
+
+
+MODULES = []
+
+# ---------------------------------------------------------------------------
+# Module 1
+# ---------------------------------------------------------------------------
+MODULES.append(module(
+    1, "Networking Today",
+    "What a network is, the devices in it, and what makes a network reliable.",
+    [
+        {
+            "title": "A network is just devices sharing a path",
+            "body": "A **network** is two or more devices connected so they can exchange data. The path can be a cable, fibre, or a radio link. The point is always the same: move a message from a sender to a receiver, intact and in a form the receiver can use.",
+            "analogy": "Think of a postal service. Houses, vans and sorting offices are different, but they all exist so a letter can travel from one address to another.",
+        },
+        {
+            "title": "End devices start or finish the conversation",
+            "body": "An **end device** (or host) is where data begins or ends: a laptop, phone, printer or server. These devices usually run the applications people actually use, such as a browser or an email client.",
+        },
+        {
+            "title": "Intermediary devices move traffic along",
+            "body": "An **intermediary device** forwards or directs traffic but is not the final destination. Common examples are **switches** (connect devices in a local network), **routers** (connect different networks, including the path to the internet), wireless access points and firewalls.",
+            "analogy": "If end devices are houses, a switch is a local sorting desk in one street, and a router is the office that sends mail on to another town.",
+        },
+        {
+            "title": "Physical and logical pictures are not the same",
+            "body": "A **physical topology** shows how devices are actually cabled or placed. A **logical topology** shows how data is allowed to flow, and how addresses are grouped, which can look quite different from the cables on the floor.",
+        },
+        {
+            "title": "Common shapes: star and mesh",
+            "body": "In a **star**, each device has its own link to a central hub or switch. A fault on one cable usually affects only that device. In a **mesh**, devices have multiple paths to each other, which is more fault-tolerant but needs more links. Home and office LANs are almost always a star (or a star of stars).",
+        },
+        {
+            "title": "LAN, WAN and the internet",
+            "body": "A **LAN** (local area network) covers a small area you control, such as a home or a campus building, and is usually fast and inexpensive per user. A **WAN** (wide area network) spans a wider area, often using a service provider. The **internet** is a global collection of networks that have agreed to exchange traffic.",
+        },
+        {
+            "title": "Intranet and extranet",
+            "body": "An **intranet** is a private network that uses internet technologies (web pages, email) but is meant for people inside an organisation. An **extranet** extends some of that access to trusted outsiders, such as a supplier, usually with a login.",
+        },
+        {
+            "title": "Four qualities of a reliable network",
+            "body": "A network people can depend on is usually judged on four things: **fault tolerance** (it keeps working when something fails), **scalability** (it can grow without being redesigned from scratch), **quality of service (QoS)** (important traffic, such as a voice call, can be treated as a priority), and **security** (only the right people and traffic get through).",
+        },
+        {
+            "title": "QoS, in one idea",
+            "body": "**QoS** does not make the link faster. It decides who goes first when the link is busy. A voice or video packet that is late is often useless, so a router can be told to prefer that traffic over a large file download.",
+            "analogy": "An ambulance is given a clear lane in a traffic jam. The road is the same width; the priority has changed.",
+        },
+        {
+            "title": "Trends you will hear a lot",
+            "body": "**BYOD** means people bring their own phones and laptops onto the work network, which adds convenience and a larger security surface. **Cloud** services run on someone else's computers and are reached over the network. Video and collaboration tools use a lot of bandwidth and are sensitive to delay, which is why QoS and capacity planning matter.",
+        },
+    ],
+    [
+        {"q": "Which of these is an end device rather than an intermediary device?",
+         "options": ["A laptop running a web browser", "A LAN switch", "A router connecting two networks", "A firewall filtering traffic"],
+         "answer": 0,
+         "why": "The laptop is where the conversation starts or ends. Switches, routers and firewalls forward or filter traffic on the way."},
+        {"q": "What is the main job of a router in a typical home or campus network?",
+         "options": ["Connect different networks and choose a path for packets", "Forward frames only inside one local segment using MAC addresses", "Store files for users", "Convert fibre into copper only"],
+         "answer": 0,
+         "why": "Routers work at the network layer and forward packets between networks, including the path out to the internet. A switch is the device that usually forwards frames inside a LAN."},
+        {"q": "A drawing that shows the cables and ports as they are actually plugged in is a:",
+         "options": ["Physical topology", "Logical topology", "Routing table", "QoS policy"],
+         "answer": 0,
+         "why": "Physical topology is the real layout of media and devices. Logical topology describes how traffic and addresses are grouped, which may not match the cabling."},
+        {"q": "Which statement about a star topology is right?",
+         "options": ["Each device has its own link to a central device, so one cable fault usually affects only that device", "Every device is cabled directly to every other device", "There is no central device", "A single cable fault always splits the whole network in two"],
+         "answer": 0,
+         "why": "Star (the usual switched LAN) gives each host its own cable to the switch. A mesh is the design with many direct paths between devices."},
+        {"q": "A LAN is best described as:",
+         "options": ["A network in a limited area under one organisation's control, usually high speed", "Any link that leaves the country", "Only a wireless network", "The same thing as the internet"],
+         "answer": 0,
+         "why": "LAN means local: a home, floor or campus. A WAN covers a wider area, often through a provider. The internet is many networks interconnected."},
+        {"q": "An intranet is:",
+         "options": ["A private network that uses internet-style services for people inside an organisation", "The public internet itself", "A type of copper cable", "A wireless radio standard"],
+         "answer": 0,
+         "why": "Intranet = internal, internet technologies. An extranet is when some of that access is deliberately opened to trusted partners."},
+        {"q": "Which list is the usual set of four requirements taught for a reliable network?",
+         "options": ["Fault tolerance, scalability, quality of service, and security", "Colour, shape, weight and height", "HTTP, FTP, SMTP and DNS", "Star, mesh, bus and ring"],
+         "answer": 0,
+         "why": "Those four — keep working after a failure, grow cleanly, treat important traffic fairly, and stay safe — are the standard 'reliable network' checklist in this course."},
+        {"q": "What does quality of service (QoS) actually do?",
+         "options": ["It gives delay-sensitive traffic a better chance of being sent first when a link is busy", "It doubles the physical speed of every cable", "It encrypts every packet automatically", "It replaces the need for a router"],
+         "answer": 0,
+         "why": "QoS is about priority and treatment, not about magically widening the link. Voice and video are typical traffic that benefit."},
+        {"q": "BYOD refers to:",
+         "options": ["People using their own personal devices on a work or school network", "A kind of fibre connector", "A routing protocol", "A backup power supply"],
+         "answer": 0,
+         "why": "Bring Your Own Device. It is convenient, and it means the network has to handle more device types and a broader security risk."},
+        {"q": "Which device would you expect to connect a campus LAN to the internet?",
+         "options": ["A router (often with a firewall function)", "A single unused wall socket", "A straight-through patch cable on its own", "A printer"],
+         "answer": 0,
+         "why": "Leaving one network for another, including the internet, is a router job. A cable is just media; a printer is an end device."},
+    ],
+))
+
+# ---------------------------------------------------------------------------
+# Module 2
+# ---------------------------------------------------------------------------
+MODULES.append(module(
+    2, "Basic Switch and End Device Configuration",
+    "How to move around Cisco IOS, set a name and passwords, save the config, and give a host an address.",
+    [
+        {
+            "title": "You talk to IOS through the CLI",
+            "body": "**Cisco IOS** is the operating system on most Cisco routers and switches. You reach the **command-line interface (CLI)** from a console cable, from SSH, or (less safely) from Telnet. The console is the one to use when the device has no network address yet.",
+        },
+        {
+            "title": "Two main modes, then configuration",
+            "body": "You start in **user EXEC** mode, shown by a `>` prompt. This mode can look but can do very little. The `enable` command takes you to **privileged EXEC** mode, shown by a `#` prompt. From there, `configure terminal` opens **global configuration** mode, where you change the running settings.",
+            "analogy": "User EXEC is the reception desk. Privileged EXEC is the office with the keys. Configuration mode is the desk where you actually rewrite the rules.",
+        },
+        {
+            "title": "How a command is built",
+            "body": "A typical IOS command is a keyword followed by one or more arguments, for example `hostname SW1`. The `?` key shows what you can type next. The Tab key completes a unique abbreviation. A command that is not allowed in the current mode is rejected, so always glance at the prompt.",
+        },
+        {
+            "title": "A safe first configuration",
+            "body": "Give the device a **hostname** so you can recognise it. Set **`enable secret`** to protect privileged mode (this stores a hashed secret and is preferred over the older `enable password`). On the console line (`line console 0`) set a password and `login` so a walk-up user must authenticate.",
+        },
+        {
+            "title": "Running config versus startup config",
+            "body": "Changes you type go into the **running configuration**, which lives in RAM and is lost on a reboot. To keep them, copy them to the **startup configuration** in NVRAM with `copy running-config startup-config`. On the next boot, the device loads the startup file into RAM.",
+        },
+        {
+            "title": "Hiding plain passwords in the file",
+            "body": "`service password-encryption` applies a weak reversible cipher (type 7) to some plain-text passwords in the configuration file, so a casual glance at the screen does not reveal them. It is not a substitute for `enable secret` or for using SSH. Treat type 7 as hiding, not as strong encryption.",
+        },
+        {
+            "title": "A switch needs an address to be managed",
+            "body": "A Layer 2 switch forwards frames without its own IP address, but you need an address if you want to SSH to it. You usually set that address on a **virtual interface** called an SVI, often `interface vlan 1` (or a dedicated management VLAN), then `ip address` and `no shutdown`. Hosts on other subnets also need a **default gateway** configured on the switch (`ip default-gateway`).",
+        },
+        {
+            "title": "End devices need an IP, a mask and a gateway",
+            "body": "For a PC to talk beyond its own subnet it needs three things: an **IPv4 address**, a **subnet mask**, and the address of its **default gateway** (the local router interface). DNS server addresses are needed as well if you want to use names such as learn.solent.ac.uk rather than raw IPs.",
+        },
+        {
+            "title": "Check that it actually works",
+            "body": "On a Cisco device, `show running-config` displays the current settings and `show ip interface brief` is a quick table of interfaces and addresses. `ping` tests whether packets can get to a destination and back. On a Windows PC, `ipconfig` shows the address settings; on Linux or macOS, `ip addr` or `ifconfig` does a similar job.",
+        },
+        {
+            "title": "A few keys worth muscle memory",
+            "body": "`Ctrl+Z` (or the `end` command) jumps back to privileged EXEC. `exit` goes up one mode. `Ctrl+C` cancels a command you are typing. `Ctrl+Shift+6` can abort a ping that is taking too long. A line starting with `!` in a pasted config is a comment and is ignored.",
+        },
+    ],
+    [
+        {"q": "Which prompt shows that you are in privileged EXEC mode?",
+         "options": ["Router#", "Router>", "Router(config)#", "Router(config-if)#"],
+         "answer": 0,
+         "why": "The bare `#` is privileged EXEC. `>` is user EXEC. `(config)#` is global configuration. `(config-if)#` is interface configuration."},
+        {"q": "Which command moves you from user EXEC into privileged EXEC?",
+         "options": ["enable", "configure terminal", "login", "no shutdown"],
+         "answer": 0,
+         "why": "`enable` raises your privilege level. `configure terminal` is used from privileged EXEC to enter global configuration."},
+        {"q": "You want to change the device name to SW1. Which is correct?",
+         "options": ["In global configuration: hostname SW1", "In user EXEC: hostname SW1", "In privileged EXEC only: name SW1", "On the console line: title SW1"],
+         "answer": 0,
+         "why": "`hostname` is a global configuration command. The prompt will then show `SW1#` (once you are in privileged EXEC)."},
+        {"q": "Why is `enable secret` preferred over `enable password`?",
+         "options": ["The secret is stored as a hash, not as readable text", "The secret is shorter to type", "The password command no longer exists in any form", "The secret is only used for Telnet"],
+         "answer": 0,
+         "why": "`enable secret` stores a hashed value (historically MD5, later stronger types). `enable password` is much weaker and may appear in the config almost in the clear if encryption is not applied."},
+        {"q": "A change you just typed will survive a reboot only if you:",
+         "options": ["Copy the running configuration to the startup configuration", "Stay in user EXEC mode", "Unplug the console cable carefully", "Use Tab completion once"],
+         "answer": 0,
+         "why": "Running-config is in RAM. `copy running-config startup-config` writes it to NVRAM so the next boot can reload it."},
+        {"q": "What does `service password-encryption` really give you?",
+         "options": ["A weak, reversible disguise of some plain passwords in the config file", "The same protection as a modern hashed enable secret", "Encrypted SSH traffic on the wire", "A replacement for a console password"],
+         "answer": 0,
+         "why": "Type 7 is easily reversed and is only meant to stop shoulder-surfing of the config. Use `enable secret` and SSH for real protection."},
+        {"q": "Which command is the usual way to enter global configuration mode?",
+         "options": ["configure terminal", "enable secret", "show running-config", "line console 0"],
+         "answer": 0,
+         "why": "`configure terminal` (often abbreviated `conf t`) is typed at the privileged EXEC prompt and leads to `(config)#`."},
+        {"q": "A PC on a LAN wants to reach the internet. Besides an IP address and mask, it almost always needs:",
+         "options": ["The IP address of its default gateway", "The MAC address of every server on the internet", "A second, unused IPv4 address", "The serial number of the switch"],
+         "answer": 0,
+         "why": "Traffic leaving the local subnet is sent to the default gateway, which is the local router interface."},
+        {"q": "Which command gives you a short table of interface names, IP addresses and up/down status?",
+         "options": ["show ip interface brief", "enable", "hostname SW1", "service password-encryption"],
+         "answer": 0,
+         "why": "`show ip interface brief` (or `show ip int br`) is the everyday status snapshot. The other commands configure or display other things."},
+        {"q": "To require a password when someone uses the console, you would typically configure:",
+         "options": ["line console 0, then a password and the login command", "interface vlan 1 only", "banner motd only", "ip default-gateway only"],
+         "answer": 0,
+         "why": "Console authentication is set under `line console 0`. `password` stores the line password and `login` tells IOS to actually prompt for it."},
+    ],
+))
+
+# --- more modules are appended below ---
+
+# ---------------------------------------------------------------------------
+# Module 3
+# ---------------------------------------------------------------------------
+MODULES.append(module(
+    3, "Protocols and Models",
+    "Why networks need agreed rules, the OSI and TCP/IP models, and how data is encapsulated.",
+    [
+        {
+            "title": "Communication needs agreed rules",
+            "body": "Two devices can only talk if they share a set of **protocols**: agreed rules about format, timing, size and what to do when something goes wrong. A **protocol suite** is a family of protocols that work together. The suite used on the internet is **TCP/IP**.",
+            "analogy": "A phone call works because both people share a language, take turns, and know how to start and end the conversation. Protocols are that shared language.",
+        },
+        {
+            "title": "Standards bodies keep vendors interoperable",
+            "body": "Open standards mean equipment from different makers can still work together. The **IETF** publishes **RFCs**, the documents that define many internet protocols. **IANA** coordinates addresses and port numbers. The **IEEE** standardises Ethernet and Wi-Fi. **ISO** published the OSI model. **TIA/EIA** are often cited for cabling standards such as T568A and T568B.",
+        },
+        {
+            "title": "The OSI model has seven layers",
+            "body": "The **OSI model** is a teaching and troubleshooting map, not a set of software you install. From the top: **7 Application**, **6 Presentation**, **5 Session**, **4 Transport**, **3 Network**, **2 Data link**, **1 Physical**. Knowing which layer a problem belongs to stops you from guessing at random.",
+        },
+        {
+            "title": "What each OSI layer is for (in one line)",
+            "body": "**Application** is the service the user or program needs (web, email). **Presentation** deals with format and encryption. **Session** starts, manages and ends a dialogue. **Transport** gets the whole message to the right process, reliably or not. **Network** picks paths and uses logical addresses (IP). **Data link** moves frames across one link using a physical address (MAC on Ethernet). **Physical** is bits on a cable or radio.",
+        },
+        {
+            "title": "The TCP/IP model has four layers",
+            "body": "The practical internet model is usually drawn as four layers: **Application**, **Transport**, **Internet**, and **Network access** (sometimes called the Link layer). OSI layers 5–7 sit inside TCP/IP Application. OSI Network matches TCP/IP Internet. OSI layers 1–2 sit inside Network access.",
+        },
+        {
+            "title": "PDUs: the name of the data at each layer",
+            "body": "The unit of data a layer works on is a **PDU**. A common set of names: at Application you have **data**; Transport wraps a **segment** (TCP) or a **datagram** (UDP); Network sends a **packet**; Data link sends a **frame**; Physical sends **bits**. These words are used constantly, so they are worth memorising.",
+        },
+        {
+            "title": "Encapsulation and decapsulation",
+            "body": "As data goes down the stack, each layer adds its own **header** (and sometimes a trailer). That wrapping is **encapsulation**. At the far end the layers peel the headers off again, which is **decapsulation**. The Ethernet frame you see on a LAN therefore contains an IP packet, which contains a TCP segment, which contains the original data.",
+            "analogy": "Posting a letter: the page goes in an envelope (address), the envelope goes in a mailbag (the next hop), and the van driver only needs to read the bag label.",
+        },
+        {
+            "title": "Same network or not?",
+            "body": "A host compares its own address and mask with the destination IP. If the destination is in the **same network**, the host delivers the packet locally (on Ethernet, it will need the destination MAC). If the destination is **remote**, the host sends the packet to its **default gateway** instead, using the gateway's MAC address on the local frame.",
+        },
+        {
+            "title": "Source and destination at two levels",
+            "body": "An IPv4 packet carries **source and destination IP** addresses that normally stay the same from end to end (unless something like NAT is in the way). The Ethernet **source and destination MAC** addresses change at each hop, because they only have meaning on that one link.",
+        },
+        {
+            "title": "Why models are worth learning",
+            "body": "You rarely configure 'OSI Layer 4' as a setting. You use the models to talk clearly and to troubleshoot: no link light is physical; a bad VLAN or MAC issue is data link; a wrong gateway is network; a closed port is transport; a bad URL or DNS name is application. The model turns a vague 'it does not work' into a shorter list of places to look.",
+        },
+    ],
+    [
+        {"q": "What is a protocol in networking?",
+         "options": ["A set of agreed rules that let devices communicate", "A brand of switch", "A type of fibre connector", "The password on a console port"],
+         "answer": 0,
+         "why": "Protocols define format, meaning and behaviour. TCP, IP, HTTP and Ethernet are all protocols (at different layers)."},
+        {"q": "Which organisation publishes RFC documents that define many internet protocols?",
+         "options": ["IETF", "IEEE", "TIA", "ISO only"],
+         "answer": 0,
+         "why": "The Internet Engineering Task Force publishes RFCs. IEEE is better known here for Ethernet and Wi-Fi; ISO published the OSI model; TIA is often cited for cabling."},
+        {"q": "In the OSI model, which layer is responsible for end-to-end delivery to the correct application process, including ports?",
+         "options": ["Transport (Layer 4)", "Physical (Layer 1)", "Network (Layer 3)", "Data link (Layer 2)"],
+         "answer": 0,
+         "why": "Transport (TCP/UDP) uses port numbers so several applications on one host can share the network. Network is IP addressing and routing. Data link is the local frame. Physical is bits."},
+        {"q": "Which OSI layer uses logical (IP) addressing and chooses a path through connected networks?",
+         "options": ["Network (Layer 3)", "Data link (Layer 2)", "Transport (Layer 4)", "Presentation (Layer 6)"],
+         "answer": 0,
+         "why": "IP lives at the Network layer. MAC addresses and Ethernet frames are data link. Ports are transport."},
+        {"q": "The four layers of the common TCP/IP model are:",
+         "options": ["Application, Transport, Internet, Network access", "Application, Presentation, Session, Transport", "Physical, Data link, Network, Transport only", "HTTP, TCP, IP, Ethernet"],
+         "answer": 0,
+         "why": "Those four names are the usual TCP/IP teaching model. HTTP/TCP/IP/Ethernet are protocols, not the names of all four layers."},
+        {"q": "What is the usual PDU name at the data link layer?",
+         "options": ["Frame", "Segment", "Packet", "Bit"],
+         "answer": 0,
+         "why": "Frame at Layer 2, packet at Layer 3, segment (TCP) at Layer 4, bits at Layer 1."},
+        {"q": "Encapsulation is best described as:",
+         "options": ["Each layer adding its header (and maybe a trailer) as data travels down the stack", "Removing IP addresses from a packet", "Compressing a file on a disk", "Turning a switch off and on"],
+         "answer": 0,
+         "why": "Wrapping is encapsulation; unwrapping at the far end is decapsulation."},
+        {"q": "A PC wants to reach a web server on a different subnet. Which MAC address does it put in the local Ethernet frame?",
+         "options": ["The MAC address of its default gateway", "The MAC address of the web server (directly, with no gateway)", "A random multicast MAC", "It leaves the destination MAC blank"],
+         "answer": 0,
+         "why": "Remote IP destinations are framed to the default gateway. The gateway then forwards the packet and builds a new frame for the next link. The IP addresses stay aimed at the server."},
+        {"q": "Which statement about addresses is right?",
+         "options": ["IP addresses usually stay the same end to end; MAC addresses are rewritten at each hop", "MAC addresses stay the same across the whole internet path", "IP addresses change at every switch inside a LAN", "Frames never carry a destination address"],
+         "answer": 0,
+         "why": "MAC addresses are local to a link. Routers (and some other hops) unpack the frame and build a new one. The packet's IP header is the end-to-end addressing (NAT is a later special case)."},
+        {"q": "IANA's role includes:",
+         "options": ["Coordinating IP address space and transport port numbers", "Manufacturing Ethernet switches", "Setting the voltage on a copper cable", "Writing the OSI model in 1984 as a product"],
+         "answer": 0,
+         "why": "IANA (and the regional registries it works with) coordinate globally unique number resources, including ports such as 443 for HTTPS."},
+    ],
+))
+
+# ---------------------------------------------------------------------------
+# Module 4
+# ---------------------------------------------------------------------------
+MODULES.append(module(
+    4, "Physical Layer",
+    "Bits on the wire (or in the air): copper, fibre and wireless, and how we cable Ethernet.",
+    [
+        {
+            "title": "The physical layer moves bits, not 'messages'",
+            "body": "The **physical layer** turns frames from the data link layer into energy: electrical signals on copper, light in fibre, or radio in the air. It does not decide who the message is for. It just encodes, times and carries bits, and tries to get them to the next device recognisable.",
+        },
+        {
+            "title": "What goes wrong on a real cable",
+            "body": "Signals fade with distance (**attenuation**). Neighbouring wires can leak into each other (**crosstalk**). Outside electrical noise is **EMI** (electromagnetic interference). The physical layer is where you look first if a link light is off, a cable is damaged, or a run is simply too long.",
+        },
+        {
+            "title": "UTP is the usual office cable",
+            "body": "**Unshielded twisted pair (UTP)** is the everyday Ethernet cable: four pairs of wires, twisted to cut crosstalk, ending in an **RJ-45** plug. **STP** adds a shield for noisier environments. Older **coaxial** cable is rarely used for new Ethernet LANs. Category ratings (Cat5e, Cat6, Cat6a) tell you how fast and how far the cable is designed to go.",
+        },
+        {
+            "title": "T568A and T568B",
+            "body": "These are two wiring colour orders for the eight pins of an RJ-45. A **straight-through** cable uses the same standard on both ends and is the usual cable from a PC to a switch, or a switch to a router. A **crossover** cable uses A on one end and B on the other, historically used between two similar devices (switch to switch, PC to PC). Modern ports often have **Auto-MDIX**, which can swap the pairs for you, so a straight-through cable usually works either way.",
+        },
+        {
+            "title": "How far, and how fast, in practice",
+            "body": "A common design limit for copper Ethernet is **100 metres** for a horizontal run (including patch leads). **Cat5e** comfortably carries 1 Gbps at that distance. **Cat6** can carry 1 Gbps at 100 m and 10 Gbps over shorter runs. **Cat6a** is specified for 10 Gbps at 100 m. Always match the cable, the connectors and the switch ports.",
+        },
+        {
+            "title": "Fibre: light instead of electricity",
+            "body": "**Fibre-optic** cable (often written 'fiber' in industry documents) carries light down a glass or plastic core. It is immune to EMI, can go much further than copper, and does not radiate the signal in the same way. It is also more expensive to terminate and needs more careful handling. In British English you will see **fibre**; the technical name of the medium is the same thing.",
+        },
+        {
+            "title": "Multimode and single-mode",
+            "body": "**Multimode** fibre has a wider core and is typically used with LEDs or short-reach lasers across a building or campus. **Single-mode** has a much narrower core and a laser, and is the usual choice for long distances, including provider links. You cannot treat the two as interchangeable: the transceivers and the fibre have to match.",
+        },
+        {
+            "title": "Wireless is still the physical layer",
+            "body": "Wi-Fi, Bluetooth and cellular radios are physical-layer media. They are convenient and they are shared, so they are more exposed to interference, blockage and eavesdropping than a cable in a wall. A wireless **access point** bridges the radio network to the wired LAN.",
+        },
+        {
+            "title": "A physical-layer checklist when it 'just will not connect'",
+            "body": "Look at the link light. Try a known-good cable. Check you are in the right port. Stay inside the distance limit. For fibre, check that the connector type and the TX/RX directions are correct. Only then move up the stack to addressing and applications.",
+        },
+    ],
+    [
+        {"q": "The physical layer is responsible for:",
+         "options": ["Encoding and carrying bits on a medium (electrical, light or radio)", "Choosing the best path across the internet", "Assigning TCP port numbers", "Building a MAC address table"],
+         "answer": 0,
+         "why": "Path selection is network layer, ports are transport, the MAC table is data link. Physical is the signal on the medium."},
+        {"q": "Attenuation means:",
+         "options": ["The signal gets weaker as it travels", "The switch has run out of MAC addresses", "A password has expired", "Two hosts are using the same IP address"],
+         "answer": 0,
+         "why": "Signals fade with distance and poor cabling. That is why length limits exist."},
+        {"q": "The common connector on office Ethernet UTP cable is:",
+         "options": ["RJ-45", "USB-C", "SC fibre only", "BNC only"],
+         "answer": 0,
+         "why": "Eight-pin RJ-45 is the standard copper Ethernet terminator in this course. Fibre uses different connectors (LC, SC and others)."},
+        {"q": "A cable wired to T568B at both ends is a:",
+         "options": ["Straight-through cable", "Crossover cable", "Rollover console cable", "Coaxial drop"],
+         "answer": 0,
+         "why": "Same standard on both ends = straight-through. A crossover mixes T568A and T568B (one end each). A rollover is a different pinout used for a console cable."},
+        {"q": "Historically, which cable would you use between two switches if Auto-MDIX was not available?",
+         "options": ["A crossover cable", "A telephone RJ-11 lead", "A power cable", "A rollover console cable only"],
+         "answer": 0,
+         "why": "Similar devices used a crossover. Auto-MDIX on modern ports often makes a straight-through cable work instead."},
+        {"q": "A typical maximum length for a copper Ethernet horizontal run (including patch leads) is:",
+         "options": ["100 metres", "2 metres only", "10 kilometres", "1 metre"],
+         "answer": 0,
+         "why": "100 m is the standard design figure for twisted-pair Ethernet of the kinds used in LANs. Fibre is used when you need to go much further."},
+        {"q": "Which statement about fibre-optic cable is right?",
+         "options": ["It is immune to EMI and can cover much longer distances than UTP", "It is the cheapest cable to terminate with a kitchen knife", "It uses RJ-45 plugs in the same way as Cat6", "It cannot be used between buildings"],
+         "answer": 0,
+         "why": "No electrical current in the glass means no EMI pickup of that sort, and long reach is the other big advantage. Termination needs proper tools and training."},
+        {"q": "Single-mode fibre is typically chosen when:",
+         "options": ["The run is long and a laser transceiver is used", "You want to reuse an RJ-45 wall port as-is", "You need to carry 12 V power to a camera on the same glass core", "You only have a very short desk patch lead to make"],
+         "answer": 0,
+         "why": "Narrow core plus laser is the long-haul combination. Multimode is common inside a building. Power over fibre is not how PoE works — PoE uses copper."},
+        {"q": "Crosstalk is:",
+         "options": ["Unwanted signal leaking from one pair into another", "A routing loop", "A type of DNS record", "The name of a Cisco interface"],
+         "answer": 0,
+         "why": "Twisting the pairs in UTP is there in large part to reduce crosstalk."},
+        {"q": "Wi-Fi operates at which layer of the OSI model as a medium?",
+         "options": ["It is a physical-layer (and, with its framing, also data-link) wireless medium", "Transport layer only", "It replaces IP completely", "Application layer only"],
+         "answer": 0,
+         "why": "The radio is physical. 802.11 also defines data-link framing. It does not replace TCP/IP; it carries it."},
+    ],
+))
+
+# ---------------------------------------------------------------------------
+# Module 5
+# ---------------------------------------------------------------------------
+MODULES.append(module(
+    5, "Number Systems",
+    "Decimal, binary and hexadecimal, which you need for masks, MAC addresses and IPv6.",
+    [
+        {
+            "title": "Why this module exists",
+            "body": "Computers and network devices work in **binary** (base 2). People prefer **decimal** (base 10). **Hexadecimal** (base 16) is a compact way to write binary, used for MAC addresses and IPv6. You do not need to be a mathematician. You do need to convert an octet quickly and see a prefix in a mask.",
+        },
+        {
+            "title": "Binary is just weights of two",
+            "body": "An 8-bit number (an **octet**) has weights **128, 64, 32, 16, 8, 4, 2, 1**. Wherever a bit is 1, you add that weight. So `11000000` is 128 + 64 = 192, which is why a `/26` mask ends in 192. Practice this until it is automatic; the Drill tab can generate endless questions.",
+        },
+        {
+            "title": "A few binary patterns worth memorising",
+            "body": "`00000000` = 0, `11111111` = 255, `10000000` = 128, `11000000` = 192, `11100000` = 224, `11110000` = 240, `11111000` = 248, `11111100` = 252, `11111110` = 254. Those last values are the common **mask endings** for prefixes /25 through /31.",
+        },
+        {
+            "title": "Hexadecimal groups binary into fours",
+            "body": "One hex digit represents exactly four bits (a **nibble**). Digits run 0–9 then A–F (10–15). The byte `11111111` is `FF`, and `00001010` is `0A`. That is why a MAC address is 12 hex digits (48 bits) and an IPv6 address is 32 hex digits (128 bits).",
+        },
+        {
+            "title": "How to convert without a calculator",
+            "body": "Decimal to binary: subtract the largest weight that fits, mark a 1, and continue right. Binary to decimal: add the weights of the 1s. Decimal to hex: convert to binary first, then split into two groups of four bits, or divide by 16 and read the remainder. Hex to decimal: 16 × the first digit, plus the second.",
+        },
+        {
+            "title": "IPv4 addresses are four decimal octets",
+            "body": "Each number in `192.168.10.66` is an octet (0–255). The same address in binary is four groups of eight bits. Subnetting is much easier once you can look at a mask such as `255.255.255.224` and instantly see 'the last octet has three 1-bits after a row of 1s, so this is a /27'.",
+        },
+        {
+            "title": "IPv6 and MAC addresses are written in hex",
+            "body": "A MAC address might be written `00:1A:2B:3C:4D:5E` or, in Cisco style, `001A.2B3C.4D5E`. IPv6 uses eight groups of four hex digits, with shortening rules you will meet in Module 12. If hex is shaky, do a handful of conversions every time you sit down to study.",
+        },
+        {
+            "title": "A worked example",
+            "body": "Take 172. `172` is 128 + 44, 44 is 32 + 12, 12 is 8 + 4, so the bits are `10101100`. Split into nibbles: `1010` = A, `1100` = C, so 172 is `AC` in hex. Checking the other way: 10 × 16 + 12 = 160 + 12 = 172.",
+        },
+    ],
+    [
+        {"q": "What is the decimal value of the binary number 11000000?",
+         "options": ["192", "128", "224", "64"],
+         "answer": 0,
+         "why": "128 + 64 = 192. This is also the last octet of a /26 mask (255.255.255.192)."},
+        {"q": "What is 255 in binary (8 bits)?",
+         "options": ["11111111", "10000000", "01111111", "11110000"],
+         "answer": 0,
+         "why": "All eight weights add up to 255, so every bit is 1."},
+        {"q": "The mask 255.255.255.224 in prefix form is:",
+         "options": ["/27", "/24", "/25", "/30"],
+         "answer": 0,
+         "why": "224 in the last octet is 11100000 — three extra 1s on top of the 24 bits in the first three octets, so 27 network bits."},
+        {"q": "How many bits does one hexadecimal digit represent?",
+         "options": ["4", "8", "2", "16"],
+         "answer": 0,
+         "why": "A nibble is four bits. Two hex digits make one octet (8 bits)."},
+        {"q": "The hex value FF in decimal is:",
+         "options": ["255", "16", "100", "127"],
+         "answer": 0,
+         "why": "F is 15. 15 × 16 + 15 = 255. It is also eight 1-bits."},
+        {"q": "A MAC address is usually 12 hex digits. How many bits is that?",
+         "options": ["48", "32", "64", "128"],
+         "answer": 0,
+         "why": "12 × 4 = 48 bits, the standard length of an Ethernet MAC address. IPv6 addresses are 128 bits (32 hex digits)."},
+        {"q": "What is the binary form of decimal 10, written as 8 bits?",
+         "options": ["00001010", "10100000", "00000010", "11111010"],
+         "answer": 0,
+         "why": "8 + 2 = 10, so bits with weights 8 and 2 are set: 00001010."},
+        {"q": "Which mask ending matches a /30 prefix?",
+         "options": ["255.255.255.252", "255.255.255.0", "255.255.255.128", "255.255.0.0"],
+         "answer": 0,
+         "why": "A /30 has 2 host bits. 256 − 4 = 252, or binary 11111100 in the last octet."},
+        {"q": "Why is hexadecimal used for MAC addresses and IPv6?",
+         "options": ["It writes binary in a short, readable form (one digit per four bits)", "It is required by copper cables", "Decimal cannot count past 100", "Hex is another name for Base64 encoding of files"],
+         "answer": 0,
+         "why": "Writing 128 bits in binary would be unreadable. Hex shortens it without losing information."},
+        {"q": "The decimal number 64 in 8-bit binary is:",
+         "options": ["01000000", "00100000", "10000000", "00000100"],
+         "answer": 0,
+         "why": "64 is a single weight, the second bit from the left. 10000000 would be 128; 00100000 is 32."},
+    ],
+))
+
+
+# ---------------------------------------------------------------------------
+# Module 6
+# ---------------------------------------------------------------------------
+MODULES.append(module(
+    6, "Data Link Layer",
+    "How a frame is built, and how devices share a link without talking over each other.",
+    [
+        {
+            "title": "The data link layer prepares bits for a specific medium",
+            "body": "The **data link layer** takes a packet from the network layer and wraps it in a **frame** that makes sense on the local link: Ethernet on a LAN, or a WAN link technology on a provider circuit. It also has to decide **when** a device is allowed to transmit, which is **media access control**.",
+        },
+        {
+            "title": "Two jobs inside the layer",
+            "body": "The layer is often described as two sublayers. **Logical Link Control (LLC)** talks upward to the network layer (on Ethernet, the EtherType field says 'this payload is IPv4 or IPv6'). **Media Access Control (MAC)** deals with the address on the medium and with access to that medium.",
+        },
+        {
+            "title": "Physical topology is not the same as how the medium is shared",
+            "body": "A modern office may be cabled as a **star** (every host into a switch) even though older textbooks spend time on bus and ring. What matters for access control is whether the medium is **point-to-point** (a dedicated link between two devices) or **shared** (several devices could try to send at once).",
+        },
+        {
+            "title": "CSMA/CD and CSMA/CA",
+            "body": "On old shared Ethernet, **CSMA/CD** meant 'listen, send if quiet, and if two devices collide, stop, wait a random time, try again'. Full-duplex switched Ethernet does not need that dance because each cable is its own dedicated path. **CSMA/CA** is the cousin used in Wi-Fi: try to avoid collisions in the first place, because radio devices cannot always hear each other collide.",
+        },
+        {
+            "title": "What a frame always has to carry",
+            "body": "A typical data-link **frame** has: a way to mark the start of the frame, a **destination address**, a **source address**, some type or control information, the **payload** (often an IP packet), and a **trailer** with an error-check such as a **Frame Check Sequence (FCS)**. If the FCS does not match, the frame is dropped. The data link layer does not usually ask for a retransmission itself — higher layers may do that.",
+        },
+        {
+            "title": "Addresses at this layer are local",
+            "body": "A data-link address only has to be unique **on that link**. On Ethernet that address is the **MAC address**. When a router forwards a packet, it builds a new frame with new source and destination MAC addresses for the next link. The packet inside can stay aimed at the same IP destination.",
+        },
+        {
+            "title": "WAN links use frames too",
+            "body": "A serial or Ethernet WAN link still needs a data-link protocol so the two ends can tell frames apart and detect errors. The details differ from LAN Ethernet, but the idea is the same: wrap the packet, get it across one hop, unwrap it. Do not confuse that hop with the whole end-to-end IP path.",
+        },
+        {
+            "title": "A troubleshooting habit",
+            "body": "If ping fails, ask: is the physical link up, and is the local frame actually reaching the next device? A wrong VLAN, a bad MAC, or a NIC that is down are data-link problems. A wrong IP or gateway is a network-layer problem. Splitting those two saves a lot of time.",
+        },
+    ],
+    [
+        {"q": "The usual PDU at the data link layer is called a:",
+         "options": ["Frame", "Segment", "Packet", "Window"],
+         "answer": 0,
+         "why": "Frames are Layer 2. Packets are Layer 3, segments are Layer 4 (TCP)."},
+        {"q": "Media access control is mainly about:",
+         "options": ["How devices share a link and whose turn it is to transmit", "How DNS names are chosen", "How a router builds a NAT table", "How fibre is coloured"],
+         "answer": 0,
+         "why": "MAC, in this sense, is access to the medium (and, on Ethernet, the hardware address of the same name)."},
+        {"q": "CSMA/CD was used on:",
+         "options": ["Older shared, half-duplex Ethernet, to detect and recover from collisions", "Always-on full-duplex switch links as a required first step", "IPv6 only", "HTTPS sessions"],
+         "answer": 0,
+         "why": "Once each host has a dedicated full-duplex link to a switch, collisions on that cable essentially go away, so CSMA/CD is no longer the daily mechanism."},
+        {"q": "What does the Frame Check Sequence (FCS) do?",
+         "options": ["Lets the receiver detect that a frame was corrupted in transit", "Encrypts the payload", "Assigns an IP address", "Guarantees the frame will be resent by Layer 2"],
+         "answer": 0,
+         "why": "The FCS is an error-detecting code (CRC). A bad frame is typically dropped. Retransmission, if any, is usually left to a higher layer such as TCP."},
+        {"q": "A data-link address needs to be unique:",
+         "options": ["On the local link (for Ethernet, the MAC address on that LAN segment)", "Across the entire internet, like a public IPv4 address", "Only inside one application process", "Only on fibre links"],
+         "answer": 0,
+         "why": "MAC addresses are used hop by hop. Global uniqueness of a burned-in MAC is a manufacturing goal, but the forwarding decision is local."},
+        {"q": "When a router forwards an IPv4 packet from one Ethernet interface to another, what happens to the Ethernet addresses?",
+         "options": ["The router builds a new frame with a new source MAC and a new destination MAC", "The original source and destination MAC addresses are left unchanged all the way to the server", "The packet is turned into a TCP segment first", "MAC addresses are deleted and never used again"],
+         "answer": 0,
+         "why": "Each hop needs a frame that makes sense on that link. The IP header is what normally stays aimed at the final host."},
+        {"q": "LLC, as taught in this module, is the sublayer that:",
+         "options": ["Interfaces with the network layer, including identifying the type of payload", "Sets the voltage on the cable", "Chooses the best path through a WAN", "Assigns public IPv4 addresses"],
+         "answer": 0,
+         "why": "Logical Link Control sits toward the network layer. On Ethernet the EtherType field (next to this idea) marks the payload as IPv4, IPv6 and so on."},
+        {"q": "Wi-Fi uses a collision-avoidance method usually abbreviated as:",
+         "options": ["CSMA/CA", "CSMA/CD", "FTP", "FCS only"],
+         "answer": 0,
+         "why": "CA is Collision Avoidance, used in wireless LANs. CD (Collision Detection) is the older wired Ethernet method."},
+        {"q": "A point-to-point topology means:",
+         "options": ["A dedicated link between two devices", "Every host shares one coaxial bus", "A ring of hubs", "A link that cannot carry IP"],
+         "answer": 0,
+         "why": "Point-to-point is two ends only. Shared media need a clearer access method because more than two devices might want to send."},
+        {"q": "If the link light is on but frames still fail an FCS check often, you should suspect:",
+         "options": ["A physical or data-link problem such as a bad cable, a duplex mismatch or interference", "A typo in a DNS record only", "That TCP ports are blocked on a remote firewall only", "That the default gateway is in a different country"],
+         "answer": 0,
+         "why": "Frequent FCS errors point at the medium or at how the two NICs are speaking (speed/duplex). DNS and remote firewalls live much higher up the stack."},
+    ],
+))
+
+# ---------------------------------------------------------------------------
+# Module 7
+# ---------------------------------------------------------------------------
+MODULES.append(module(
+    7, "Ethernet Switching",
+    "Ethernet frames, MAC addresses, and how a switch learns and forwards.",
+    [
+        {
+            "title": "The Ethernet II frame, in order",
+            "body": "A standard **Ethernet II** frame carries: destination MAC, source MAC, an **EtherType** (for example 0x0800 for IPv4, 0x86DD for IPv6, 0x0806 for ARP), the payload, and a 4-byte **FCS**. Before the frame on the wire there is a preamble and start-of-frame delimiter, which NICs use to lock on to the bits. The normal maximum payload is **1500 bytes** (the Ethernet MTU).",
+        },
+        {
+            "title": "A MAC address is 48 bits",
+            "body": "An Ethernet **MAC address** is 48 bits, written as 12 hex digits. The first half is usually an **OUI** (organisationally unique identifier) assigned to the vendor. The address is burned into the NIC but can sometimes be overridden in software. Broadcast is **FF:FF:FF:FF:FF:FF**. A special bit in the first byte marks unicast versus multicast.",
+        },
+        {
+            "title": "How a switch learns",
+            "body": "A switch builds a **MAC address table** (CAM table) by looking at the **source** MAC of frames that arrive, and recording the port they came in on. Entries time out after a period of disuse (ageing, often written 'aging'). The table is how the switch later knows where to send a unicast frame.",
+            "analogy": "The first time someone posts a letter from a new house, the local office notes which road they live on. Next time a letter arrives for that house, it can go straight down that road.",
+        },
+        {
+            "title": "How a switch forwards",
+            "body": "For a unicast destination already in the table, the switch sends the frame only out that port (and never back out the port it arrived on). If the destination is **unknown**, the switch **floods** the frame out all other ports in that Layer 2 domain. **Broadcast** and (typically) multicast frames are also flooded. This is why a loop without spanning tree is so dangerous: floods multiply.",
+        },
+        {
+            "title": "Collision domains and broadcast domains",
+            "body": "Each full-duplex switch port is its own **collision domain**. A cheap hub (rare now) would put every port in one collision domain. A switch does **not**, by itself, break a **broadcast domain**: a broadcast still reaches every port in the VLAN. A router (or a Layer 3 switch routing between VLANs) breaks broadcast domains.",
+        },
+        {
+            "title": "Store-and-forward versus cut-through",
+            "body": "**Store-and-forward** switching reads the whole frame, checks the FCS, then sends it. That catches errors but adds a little delay. **Cut-through** starts sending once it has the destination MAC, which is faster but can forward a damaged frame. Many campus switches use store-and-forward, sometimes with a cut-through option.",
+        },
+        {
+            "title": "Speed, duplex and Auto-MDIX",
+            "body": "A port can run at different **speeds** (10/100/1000 Mbps and up) and in **half-duplex** or **full-duplex**. Both ends should agree. **Auto-negotiation** usually sorts this out; a manual mismatch (one end full, one end half) causes late collisions and a terrible link. **Auto-MDIX** can correct a crossover-versus-straight-through cable mistake on many ports.",
+        },
+        {
+            "title": "What a switch is not",
+            "body": "A Layer 2 switch does not use IP addresses to forward ordinary user frames. It can have an IP address for management, but the forwarding plane is MAC-based. Do not expect `show ip route` on a pure Layer 2 switch to explain user traffic. For that you look at `show mac address-table` and the port status.",
+        },
+        {
+            "title": "A few useful show commands",
+            "body": "`show mac address-table` (or `show mac-address-table` on some releases) lists learned addresses and ports. `show interface` and `show interface status` show speed, duplex and errors. A rapidly climbing FCS or collision counter is a hint to check the cable and duplex.",
+        },
+    ],
+    [
+        {"q": "The EtherType field in an Ethernet II frame tells the receiver:",
+         "options": ["What kind of payload follows, such as IPv4, IPv6 or ARP", "The DNS name of the sender", "The speed of the switch backplane", "The administrative password"],
+         "answer": 0,
+         "why": "0x0800 marks IPv4, 0x86DD marks IPv6, 0x0806 marks ARP. That is how the NIC hands the payload to the right place."},
+        {"q": "An Ethernet MAC address is how long?",
+         "options": ["48 bits (12 hexadecimal digits)", "32 bits", "128 bits", "8 bits"],
+         "answer": 0,
+         "why": "48 bits is the standard Ethernet address length. 32 bits is IPv4, 128 bits is IPv6."},
+        {"q": "The Ethernet broadcast MAC address is:",
+         "options": ["FF:FF:FF:FF:FF:FF", "00:00:00:00:00:00", "192.168.255.255", "127.0.0.1"],
+         "answer": 0,
+         "why": "All-ones in 48 bits is the broadcast MAC. 192.168.255.255 would be an IPv4 address, not a MAC."},
+        {"q": "A switch learns MAC addresses from:",
+         "options": ["The source MAC address of incoming frames, and the port they arrived on", "The DNS server", "The destination IP address only", "A random number generator at boot"],
+         "answer": 0,
+         "why": "Learning is based on the source. The destination is used later to decide where to forward."},
+        {"q": "If a unicast destination MAC is not yet in the table, a switch will:",
+         "options": ["Flood the frame out all other ports in that Layer 2 domain", "Drop it silently every time", "Convert it into a broadcast IP packet", "Send it only to the default gateway"],
+         "answer": 0,
+         "why": "Unknown unicast flooding is normal. Once the destination replies, its source MAC is learned and later frames can be switched to one port."},
+        {"q": "The Ethernet broadcast MAC is flooded by a Layer 2 switch. What does a router do to broadcasts by default?",
+         "options": ["It does not forward them from one network to another, so it breaks broadcast domains", "It always copies them to every WAN link", "It turns them into multicast IPv6 packets", "It stores them forever in NVRAM"],
+         "answer": 0,
+         "why": "Routers separate broadcast domains. Switches (within a VLAN) do not."},
+        {"q": "Store-and-forward switching is the method that:",
+         "options": ["Receives the whole frame and checks the FCS before forwarding", "Sends the first byte before the destination MAC has arrived", "Ignores errors on purpose to save power", "Only works on fibre"],
+         "answer": 0,
+         "why": "The FCS is at the end of the frame, so the switch must see the whole frame to check it. That is store-and-forward."},
+        {"q": "A duplex mismatch typically happens when:",
+         "options": ["One end of a link is full-duplex and the other is half-duplex", "Both ends are auto-negotiated full-duplex at the same speed", "Two fibre connectors are clean and correctly seated", "A host uses IPv6 instead of IPv4"],
+         "answer": 0,
+         "why": "The half-duplex side sees late collisions; the full-duplex side does not play the same rules. The link often stays 'up' but performs badly."},
+        {"q": "A Layer 2 switch forwards ordinary user frames based on:",
+         "options": ["Destination MAC addresses", "Destination IPv4 addresses only", "TCP port numbers", "The hostname of the switch"],
+         "answer": 0,
+         "why": "Layer 2 forwarding is MAC-based. IP addresses matter to routers (and to the hosts), not to a pure L2 switch's forwarding decision."},
+        {"q": "The usual maximum payload of a standard Ethernet frame (the MTU) is:",
+         "options": ["1500 bytes", "48 bytes", "65535 bytes", "8 bytes"],
+         "answer": 0,
+         "why": "1500 bytes is the classic Ethernet MTU. Larger 'jumbo' frames exist but are a special configuration, not the default you should assume."},
+    ],
+))
+
+
+# ---------------------------------------------------------------------------
+# Module 8
+# ---------------------------------------------------------------------------
+MODULES.append(module(
+    8, "Network Layer",
+    "IP packets, what a router actually does, and how a host or router chooses the next hop.",
+    [
+        {
+            "title": "The network layer's job is end-to-end addressing and paths",
+            "body": "The **network layer** moves packets from the original sender to the final destination, possibly across many links. **IPv4** and **IPv6** are the two versions you will use. IP is **connectionless** and **best-effort**: it does not set up a circuit first, and it does not by itself guarantee delivery, order or no duplicates. Reliability, if you need it, is added by a higher layer such as TCP.",
+        },
+        {
+            "title": "The important IPv4 header fields",
+            "body": "An IPv4 header is at least **20 bytes**. Fields worth knowing: **Version** (4), **IHL** (header length), **DSCP/ToS** (used by QoS), **Total Length**, **TTL** (Time to Live), **Protocol** (which transport comes next: 6 = TCP, 17 = UDP, 1 = ICMP), **Header Checksum**, and the **source** and **destination IPv4 addresses**. Fragmentation fields exist because an IPv4 packet can be split if a later link has a smaller MTU.",
+        },
+        {
+            "title": "TTL is a hop budget, not a clock",
+            "body": "Despite the name, **TTL** is a hop count in practice. Each router that forwards the packet subtracts 1. If TTL reaches 0, the packet is discarded and the router typically sends an ICMP 'time exceeded' message back. That behaviour is exactly what **traceroute** relies on.",
+        },
+        {
+            "title": "The IPv6 header is simpler in some useful ways",
+            "body": "The base **IPv6** header is a fixed **40 bytes**. There is **no header checksum** and **no IHL**. **Hop Limit** plays the role of TTL. **Next Header** plays the role of the Protocol field (and also points at extension headers). **Payload Length** counts the bytes after the base header. Source and destination addresses are 128 bits each. QoS-related fields are **Traffic Class** and **Flow Label**.",
+        },
+        {
+            "title": "How a host routes",
+            "body": "A host has a simple **routing table** of its own. For a destination in a locally connected network, it sends the packet out of that interface (and will resolve the destination MAC). For anything else it typically uses a single **default route** (0.0.0.0/0 or ::/0) pointing at the default gateway.",
+        },
+        {
+            "title": "How a router routes",
+            "body": "A router looks at the **destination IP**, finds the **longest matching prefix** in its **routing table**, and forwards the packet out the interface (or to the next-hop address) that entry names. Routes can be **directly connected**, **static**, or learned by a **routing protocol**. If no match exists, the packet is dropped (and an ICMP 'destination unreachable' may be sent).",
+        },
+        {
+            "title": "Connected, static and default routes",
+            "body": "When you configure an address on a router interface and bring it up, a **connected** route for that network appears automatically. A **static** route is one you type, such as `ip route 10.0.0.0 255.0.0.0 192.168.1.1`. A **default route** (`0.0.0.0 0.0.0.0` or `::/0`) is the 'if nothing else matches, send it here' entry, often used to reach the internet.",
+        },
+        {
+            "title": "Routers change frames, not the end-to-end IP goal",
+            "body": "At each hop the router unwraps the incoming frame, decrements TTL or Hop Limit, and (if it forwards) builds a new frame for the next link. The destination IP address stays the same, unless a later tool such as NAT is in use. That is why IP can cross many different Layer 2 technologies in one path.",
+        },
+        {
+            "title": "A command to see the table",
+            "body": "`show ip route` displays the IPv4 routing table. Codes at the left of each entry tell you how the route was learned (C = connected, L = local interface address, S = static, and others you will meet later). `show ipv6 route` is the IPv6 counterpart.",
+        },
+    ],
+    [
+        {"q": "IP is usually described as:",
+         "options": ["Connectionless and best-effort", "A guaranteed, ordered delivery service like a signed-for parcel by default", "A data-link protocol used only on copper", "A replacement for MAC addresses inside a single switch"],
+         "answer": 0,
+         "why": "IP makes a reasonable attempt to deliver a packet and then stops. TCP, not IP, is what adds a reliable session when you need one."},
+        {"q": "Which IPv4 header field is reduced by one at each router and used by traceroute?",
+         "options": ["TTL (Time to Live)", "Source address", "Header Checksum only, and it is never changing", "The version field"],
+         "answer": 0,
+         "why": "TTL is decremented per hop. When it hits zero the packet dies and an ICMP time-exceeded message is typically sent, which traceroute watches for."},
+        {"q": "In an IPv4 header, the Protocol field is used to:",
+         "options": ["Identify what comes next, such as TCP (6), UDP (17) or ICMP (1)", "Store the DNS name of the destination", "Hold the MAC address of the next hop", "Count the number of routers in the world"],
+         "answer": 0,
+         "why": "The receiving host uses Protocol to hand the payload to the right process: TCP, UDP, ICMP and so on."},
+        {"q": "The base IPv6 header is:",
+         "options": ["A fixed 40 bytes, with no header checksum", "Always 20 bytes, identical to IPv4", "Variable length because of an IHL field like IPv4", "Only 8 bytes long"],
+         "answer": 0,
+         "why": "IPv6's base header is fixed-length and checksum-free. Error checking is left to the link and to the transport layer (and ICMPv6)."},
+        {"q": "The IPv6 field that plays the same role as IPv4 TTL is:",
+         "options": ["Hop Limit", "Flow Label", "Traffic Class", "Payload Length"],
+         "answer": 0,
+         "why": "Hop Limit is decremented at each hop. Flow Label and Traffic Class are related to handling and QoS, not to the hop budget."},
+        {"q": "A host sending to an IP address that is not in any of its connected networks will usually:",
+         "options": ["Send the packet to its default gateway", "Drop the packet and give up immediately, always", "Broadcast it to FF:FF:FF:FF:FF:FF and hope a server answers", "Rewrite the destination IP to 127.0.0.1"],
+         "answer": 0,
+         "why": "That is what the default route is for. The default gateway is the local router interface."},
+        {"q": "A router chooses among matching routes by picking:",
+         "options": ["The longest matching prefix", "The route with the prettiest interface name", "The newest MAC address it has seen", "A random connected interface"],
+         "answer": 0,
+         "why": "Longest-prefix match is the fundamental IPv4 and IPv6 forwarding rule. More specific wins over less specific (for example /24 beats /16)."},
+        {"q": "A directly connected route appears in the routing table when:",
+         "options": ["An interface has a valid address and is up", "You have configured a banner", "A PC pings itself", "You set an enable secret"],
+         "answer": 0,
+         "why": "A usable, up interface with an address installs its network as a connected route (and a local /32 or /128 for the interface address itself)."},
+        {"q": "Which command shows the IPv4 routing table on a Cisco router?",
+         "options": ["show ip route", "show mac address-table", "show vlan brief", "enable secret"],
+         "answer": 0,
+         "why": "`show ip route` is the table that drives forwarding. The MAC table is a switch (Layer 2) thing."},
+        {"q": "If a router has no matching route for a packet (and no default route), it will:",
+         "options": ["Drop the packet, and may send an ICMP destination unreachable message", "Flood it out every interface like a switch", "Convert it to a broadcast frame automatically", "Store it until a route appears weeks later"],
+         "answer": 0,
+         "why": "No route means no forward. Routers do not unknown-unicast-flood packets the way Layer 2 switches flood unknown MAC frames."},
+    ],
+))
+
+# ---------------------------------------------------------------------------
+# Module 9
+# ---------------------------------------------------------------------------
+MODULES.append(module(
+    9, "Address Resolution",
+    "How IPv4 uses ARP, and how IPv6 uses Neighbour Discovery, to find a local MAC address.",
+    [
+        {
+            "title": "Two addresses, two jobs",
+            "body": "An **IP address** identifies a host (or interface) across networks. A **MAC address** identifies a NIC on one local Ethernet link. To send an IP packet on Ethernet, a host still has to wrap it in a frame, so it must know the **next-hop MAC**. Finding that mapping is the job of this module.",
+        },
+        {
+            "title": "IPv4 uses ARP",
+            "body": "**ARP** (Address Resolution Protocol, RFC 826) answers the question: 'Who has this IPv4 address, and what is your MAC?' The requester sends an **ARP request** as an Ethernet broadcast. The owner of the IPv4 address **unicasts** an **ARP reply**. The requester stores the mapping in its **ARP table** (cache) for a while.",
+            "analogy": "You stand in a hall and shout 'Is Maria here, and what is your desk number?' Everyone hears the shout. Only Maria answers, and she answers you directly.",
+        },
+        {
+            "title": "Local destination versus gateway",
+            "body": "If the destination IPv4 address is on the **same subnet**, ARP looks up that destination itself. If the destination is **remote**, ARP looks up the **default gateway's** IPv4 address instead. A very common fault is a wrong mask that makes a host think a neighbour is remote (or the other way around), so it ARPs for the wrong thing.",
+        },
+        {
+            "title": "Reading an ARP table",
+            "body": "On Windows, `arp -a` shows the cache. On a Cisco device, `show ip arp` does the same job. Entries usually expire so that a replaced NIC does not stay mapped for ever. You may also see a multicast or incomplete entry when a request has not yet been answered.",
+        },
+        {
+            "title": "ARP has limits and risks",
+            "body": "Because a request is broadcast, a large flat subnet means a lot of ARP noise. ARP has no built-in login, so a host can be tricked by a fake reply (**ARP spoofing**). You do not need the full attack picture in ITN, but you should know that ARP is trusted more than it is authenticated.",
+        },
+        {
+            "title": "IPv6 does not use ARP",
+            "body": "IPv6 uses **Neighbour Discovery (ND)** with **ICMPv6**, not ARP. The two main messages for this job are **Neighbour Solicitation (NS)** and **Neighbour Advertisement (NA)**. Instead of an Ethernet broadcast, IPv6 uses a **solicited-node multicast** address, which disturbs far fewer hosts on the LAN.",
+        },
+        {
+            "title": "The rest of Neighbour Discovery",
+            "body": "Hosts also send **Router Solicitation (RS)** to find routers, and routers send **Router Advertisement (RA)** to announce prefixes, the default gateway, and how addresses may be configured. ND also covers **Duplicate Address Detection (DAD)**: a host issues an NS for the address it wants to use, and stays quiet if someone already answers.",
+        },
+        {
+            "title": "A short side-by-side",
+            "body": "IPv4: ARP request (broadcast) and ARP reply (unicast), plus a separate DHCP or static process for addresses. IPv6: NS/NA for neighbour MAC mapping, RS/RA for router and prefix information, and optional DHCPv6. Same problem — 'how do I build the local frame?' — different tools.",
+        },
+    ],
+    [
+        {"q": "ARP is used to:",
+         "options": ["Map an IPv4 address to a local MAC address", "Map a domain name to an IPv6 address", "Encrypt a TCP session", "Assign public AS numbers"],
+         "answer": 0,
+         "why": "Address Resolution Protocol is the IPv4-to-MAC mapping tool on Ethernet and similar media."},
+        {"q": "An ARP request is sent to:",
+         "options": ["The Ethernet broadcast address, so every host on the LAN sees it", "Only the default gateway, always", "A unicast MAC the sender already knows", "UDP port 53"],
+         "answer": 0,
+         "why": "The requester does not yet know the MAC, so the request is broadcast. The reply is unicast back to the requester."},
+        {"q": "A host is sending to an IPv4 address on a different subnet. Which address will it try to resolve with ARP?",
+         "options": ["The IPv4 address of its default gateway", "The IPv4 address of the remote server itself", "127.0.0.1", "255.255.255.255 only"],
+         "answer": 0,
+         "why": "The next hop on the local link is the gateway, so that is the MAC it needs. The remote server's MAC would not be useful on this LAN."},
+        {"q": "Which Cisco command displays the IPv4 ARP table?",
+         "options": ["show ip arp", "show ip route", "show version", "copy running-config startup-config"],
+         "answer": 0,
+         "why": "`show ip arp` lists IP, MAC, age and interface. `show ip route` is the routing table, which is a different thing."},
+        {"q": "IPv6 replaces ARP with:",
+         "options": ["Neighbour Discovery using ICMPv6 (NS and NA messages)", "A longer ARP packet with 128-bit fields", "HTTP", "TFTP"],
+         "answer": 0,
+         "why": "ND is part of ICMPv6. Neighbour Solicitation and Neighbour Advertisement do the mapping job."},
+        {"q": "A solicited-node multicast is used in IPv6 so that:",
+         "options": ["A neighbour solicitation does not have to interrupt every host on the LAN the way an ARP broadcast does", "Every host must process every NS, as with ARP", "Routers can ignore all neighbour messages", "IPv6 can run without MAC addresses on Ethernet"],
+         "answer": 0,
+         "why": "Only hosts whose addresses match the last 24 bits of the target (plus a well-known prefix) join that multicast group, which cuts the noise."},
+        {"q": "Router Advertisement (RA) messages are sent by:",
+         "options": ["IPv6 routers, to share prefix and gateway information", "Every web browser, once a minute", "IPv4 hosts using ARP", "DNS root servers only"],
+         "answer": 0,
+         "why": "RAs are how a link learns its IPv6 prefix, default router, and hints about SLAAC or DHCPv6. Hosts can solicit them with RS."},
+        {"q": "Duplicate Address Detection (DAD) in IPv6 is used to:",
+         "options": ["Check that an address the host wants to use is not already taken on the link", "Find the fastest path to a website", "Encrypt neighbour messages", "Convert IPv4 to IPv6"],
+         "answer": 0,
+         "why": "The host sends an NS for its own candidate address. If a neighbour advertises it already, the host must not use it."},
+        {"q": "A wrong subnet mask on a PC often breaks ARP because:",
+         "options": ["The PC may treat a local peer as remote (and ARP for the gateway) or a remote peer as local", "ARP only works with odd-numbered masks", "The MAC broadcast address changes", "IOS refuses to store any MAC addresses"],
+         "answer": 0,
+         "why": "The 'is this destination local?' test is done with the mask. Get the mask wrong and you ARP for the wrong target, or never use the gateway."},
+        {"q": "Which statement is right?",
+         "options": ["MAC addresses are used on the local link; IP addresses are used to identify the original sender and the final destination", "ARP works unchanged for IPv6", "A switch uses ARP, not a MAC table, to forward frames", "Neighbour Discovery is an IPv4 protocol"],
+         "answer": 0,
+         "why": "That split — IP end-to-end, MAC hop-by-hop — is the whole point of address resolution. ARP is IPv4; ND is IPv6; switches still forward on MAC."},
+    ],
+))
+
+# ---------------------------------------------------------------------------
+# Module 10
+# ---------------------------------------------------------------------------
+MODULES.append(module(
+    10, "Basic Router Configuration",
+    "Give a router a name, addresses on its interfaces, and a gateway for the hosts behind it.",
+    [
+        {
+            "title": "A router is a host with several networks attached",
+            "body": "Each **interface** on a router is in a **different network**. That is the whole point: the router is the device that can move packets between those networks. Configuration is similar to a switch (hostname, secrets, banners, SSH) but you also give each **active interface** an IPv4 and/or IPv6 address and bring it up.",
+        },
+        {
+            "title": "Router interfaces start down until you say otherwise",
+            "body": "On many Cisco routers, a physical interface is **shutdown** by default. After you set `ip address` (and maybe an IPv6 address), you must type **`no shutdown`**. Then check with `show ip interface brief`. A Layer 2 switch port, by contrast, is usually up by default.",
+        },
+        {
+            "title": "A typical IPv4 interface",
+            "body": "In global configuration: `interface GigabitEthernet0/0/0` (the exact name depends on the platform), then `ip address 192.168.1.1 255.255.255.0`, a `description`, and `no shutdown`. The router now has a connected route for 192.168.1.0/24. Hosts on that LAN should use `192.168.1.1` as their default gateway.",
+        },
+        {
+            "title": "IPv6 on the same interface",
+            "body": "IPv6 needs **`ipv6 unicast-routing`** in global configuration before the router will actually **forward** IPv6 (it can still have an address as an end device without that). Then, on the interface: `ipv6 address 2001:db8:1:1::1/64`. A **link-local** address is created automatically; you can also set one, often to a short value such as `fe80::1`, which is easier to recognise in `show` output.",
+        },
+        {
+            "title": "The default gateway on hosts and on a Layer 2 switch",
+            "body": "A PC's default gateway is the **router interface** on its own subnet. A Layer 2 switch uses `ip default-gateway` so that management traffic (SSH to the switch from another subnet) can find its way back. A router does not use `ip default-gateway`; it uses a **default route** (`ip route 0.0.0.0 0.0.0.0 ...`).",
+        },
+        {
+            "title": "Document as you go",
+            "body": "Set a **hostname**. Add an **interface description**. Use a **banner motd** to warn that access is authorised only. Keep an addressing plan written down: which LAN uses which prefix, and which router interface is the gateway. Most 'the network is down' moments in a lab are a typo in this plan.",
+        },
+        {
+            "title": "Save and verify",
+            "body": "Use `copy running-config startup-config` once the router is doing what you want. Verify with `show ip interface brief`, `show ipv6 interface brief`, `show ip route`, and `ping`. Ping the router's own interfaces first, then a host on each LAN, then a more remote address.",
+        },
+        {
+            "title": "A small topology to keep in your head",
+            "body": "Two PCs, one switch, one router is enough to practise everything in this module. Each PC has an address in the LAN, the switch may have a management address in that same LAN, and G0/0/0 on the router is the gateway. G0/0/1 might go on to another network or to a second router. If ping fails, walk that chain one hop at a time.",
+        },
+    ],
+    [
+        {"q": "Why does a router have addresses in more than one network?",
+         "options": ["Because its job is to forward packets between those networks", "Because IOS will not boot with only one address", "Because switches cannot have a hostname", "Because ARP does not work on a single LAN"],
+         "answer": 0,
+         "why": "Each interface is a door into a different network. The routing table tells the router how the doors connect."},
+        {"q": "After assigning an IPv4 address to a Cisco router interface, you usually also need to:",
+         "options": ["Type no shutdown to bring the interface up", "Delete the startup configuration", "Disable IPv4 on the hosts", "Set the interface speed to 10 Mbps only"],
+         "answer": 0,
+         "why": "Router interfaces are often down by default. `no shutdown` administratively enables them."},
+        {"q": "Hosts on the LAN 192.168.1.0/24 should typically use which default gateway if the router interface is 192.168.1.1?",
+         "options": ["192.168.1.1", "192.168.1.0", "192.168.1.255", "0.0.0.0"],
+         "answer": 0,
+         "why": "The gateway must be an address of a router interface on the same subnet as the host. .0 is the network address and .255 is the broadcast on a /24."},
+        {"q": "Which global command is required before a Cisco router will forward IPv6 traffic?",
+         "options": ["ipv6 unicast-routing", "ip default-gateway", "service password-encryption", "hostname R1"],
+         "answer": 0,
+         "why": "`ipv6 unicast-routing` turns the device into an IPv6 router. Without it, it will not forward other people's IPv6 packets."},
+        {"q": "A Layer 2 switch uses which command to reach management hosts on other subnets?",
+         "options": ["ip default-gateway", "ip route 0.0.0.0 0.0.0.0 ...", "ipv6 unicast-routing", "no shutdown only"],
+         "answer": 0,
+         "why": "A pure Layer 2 switch is not routing user traffic, so it uses `ip default-gateway` for its own management packets. A router uses a default route instead."},
+        {"q": "Which command writes the current configuration so it survives a reload?",
+         "options": ["copy running-config startup-config", "show ip interface brief", "enable", "ping 192.168.1.1"],
+         "answer": 0,
+         "why": "That copy (sometimes still called `write memory`) stores running-config in NVRAM as startup-config."},
+        {"q": "A link-local IPv6 address on a router interface:",
+         "options": ["Is created automatically, and can also be set to a memorable value such as fe80::1", "Must be bought from a regional registry", "Replaces the need for a global unicast address when talking across the internet", "Is the same as 127.0.0.1"],
+         "answer": 0,
+         "why": "Every IPv6-enabled interface has a link-local address (fe80::/10). It is not globally routable. Setting a short one makes `show` output easier to read."},
+        {"q": "The command `show ip interface brief` is useful because it:",
+         "options": ["Lists each interface, its IPv4 address, and whether it is up or down", "Shows the full running configuration including passwords", "Displays the IPv6 neighbour table only", "Restarts the router"],
+         "answer": 0,
+         "why": "It is the quickest health check after you address an interface. Look for 'up/up' and the address you expected."},
+        {"q": "An interface description is:",
+         "options": ["A note you configure on the interface to document what it connects to", "A second IPv4 address", "A kind of subnet mask", "Required for ARP to function"],
+         "answer": 0,
+         "why": "Descriptions do not change forwarding, but they make the configuration readable six weeks later."},
+        {"q": "A PC can ping its default gateway, but not a host on a second LAN attached to the same router. A likely first check is:",
+         "options": ["The second interface's address, mask, and whether it is up, plus the routing table", "Whether the PC has a default gateway at all (it already pings it)", "The colour of the patch cable only, with no further tests", "The enable secret"],
+         "answer": 0,
+         "why": "Local gateway ping already proved the first hop. The path onto the second LAN depends on that other interface and on routing between the two networks."},
+    ],
+))
+
+# ---------------------------------------------------------------------------
+# Module 11
+# ---------------------------------------------------------------------------
+MODULES.append(module(
+    11, "IPv4 Addressing",
+    "Network and host bits, public and private addresses, and how to subnet (including VLSM).",
+    [
+        {
+            "title": "An IPv4 address is 32 bits, written as four octets",
+            "body": "Each **octet** is 8 bits, written in decimal from 0 to 255, and the four numbers are separated by dots: `192.168.10.10`. A **subnet mask** (or a **prefix length** such as `/24`) marks how many of those 32 bits are the **network portion**. The remaining bits are the **host portion**.",
+        },
+        {
+            "title": "The mask is a row of 1s then a row of 0s",
+            "body": "A legal mask has contiguous 1-bits on the left. `/24` is `255.255.255.0`. `/26` is `255.255.255.192`. You can think of AND-ing the address with the mask to get the **network address** (all host bits 0). The **broadcast address** has all host bits set to 1. Hosts may use the addresses in between.",
+        },
+        {
+            "title": "The everyday formula (and two special cases)",
+            "body": "For prefixes **/0 to /30**, total addresses = `2^host bits`, and **usable hosts** = total − 2 (you lose the network and broadcast addresses). A **/31** (RFC 3021) is a two-address point-to-point link with no broadcast; both addresses can be used. A **/32** is a single-host route. ITN practice questions usually want the − 2 rule, and the Drill tab will say when a question is a special case.",
+        },
+        {
+            "title": "Unicast, broadcast and multicast",
+            "body": "A **unicast** address names one interface. A **broadcast** address names every host on the subnet (or, with `255.255.255.255`, the local link). A **multicast** address names a group; IPv4 multicast lives in **224.0.0.0/4** (224.0.0.0–239.255.255.255). A host that has not joined a group should ignore that group's traffic.",
+        },
+        {
+            "title": "Public, private and other reserved ranges",
+            "body": "**Private** addresses (RFC 1918) can be used inside an organisation and are not routed on the public internet: **`10.0.0.0/8`**, **`172.16.0.0/12`** (172.16–172.31), and **`192.168.0.0/16`**. **`127.0.0.0/8`** is **loopback** (your own machine). **`169.254.0.0/16`** is **link-local** (APIPA), used when a host cannot obtain an address. Everything else that is assigned for use on the internet is **public** and must be unique.",
+        },
+        {
+            "title": "Classes are history; prefixes are what you configure",
+            "body": "Older textbooks split unicast into Class A (/8), B (/16) and C (/24) by the first bits of the address. You should still be able to recognise that idea, because exam questions sometimes mention it. Modern networks use **CIDR**: any prefix length that fits the design, not only /8, /16 or /24.",
+        },
+        {
+            "title": "Why we subnet",
+            "body": "Subnetting splits one larger block into several smaller networks. That limits broadcast traffic, lets you apply different security or QoS per subnet, and matches the network to real groups of people (a floor, a lab, a point-to-point link). The cost is a little arithmetic, and a few addresses reserved in each subnet.",
+        },
+        {
+            "title": "The block-size method (the one to practise)",
+            "body": "Find the **interesting octet** — the one where the mask is not 0 or 255. The **block size** is `256 − that mask octet` (which is also `2^(8 − bits used in that octet)`). Subnets in that octet start at 0, then jump by the block size. Example: `192.168.10.66/27` has mask 224 in the last octet, block size 32, so the network is `192.168.10.64`, broadcast `192.168.10.95`, usable `65–94`.",
+            "analogy": "Think of a numbered street split into terraces of equal length. Once you know the terrace size, you can tell which terrace any house number belongs to.",
+        },
+        {
+            "title": "Subnetting a /16 or an /8 is the same idea",
+            "body": "If you start with `10.0.0.0/8` and use `/16` subnets, the second octet becomes the subnet field: `10.0.0.0/16`, `10.1.0.0/16`, and so on. If you use `/24` subnets inside a `/16`, the third octet steps by 1. Do not let the extra zeros scare you: locate the interesting octet, then count in block sizes.",
+        },
+        {
+            "title": "VLSM is just subnetting with more than one size",
+            "body": "**Variable Length Subnet Masking (VLSM)** means you do not have to cut every subnet the same size. A point-to-point link can be a `/30` (or `/31`), a small lab a `/28`, a busy floor a `/24`. Start with the **largest** groups first so you do not trap unsplittable holes in the address plan. The Drill tab will keep you honest on the arithmetic; this card is about the design idea.",
+        },
+        {
+            "title": "A worked /28 you can reuse",
+            "body": "`10.0.0.0/28` has 4 host bits. Total 16 addresses, 14 usable. Networks land on multiples of 16 in the last octet: `.0`, `.16`, `.32`, … The `.16` subnet has network `10.0.0.16`, first usable `10.0.0.17`, last usable `10.0.0.30`, broadcast `10.0.0.31`. If you can do that without hesitation, most ITN subnet questions will feel fair.",
+        },
+    ],
+    [
+        {"q": "How many usable host addresses does a /28 network have, using the usual ITN rule?",
+         "options": ["14", "16", "15", "30"],
+         "answer": 0,
+         "why": "A /28 has 4 host bits: 2^4 = 16 addresses in total. Subtract the network and broadcast addresses: 16 − 2 = 14."},
+        {"q": "The RFC 1918 private IPv4 blocks are:",
+         "options": ["10.0.0.0/8, 172.16.0.0/12 and 192.168.0.0/16", "10.0.0.0/8 only", "127.0.0.0/8 and 224.0.0.0/4", "8.8.8.0/24 and 1.1.1.0/24"],
+         "answer": 0,
+         "why": "Those three ranges are the private (non-internet-routable) unicast blocks. 127.0.0.0/8 is loopback; 224.0.0.0/4 is multicast."},
+        {"q": "What is the network address of 192.168.10.66/27?",
+         "options": ["192.168.10.64", "192.168.10.66", "192.168.10.32", "192.168.10.96"],
+         "answer": 0,
+         "why": "A /27 has a block size of 32 in the last octet. 66 sits in the 64–95 block, so the network is 192.168.10.64."},
+        {"q": "What is the broadcast address of 10.0.0.0/27?",
+         "options": ["10.0.0.31", "10.0.0.27", "10.0.0.255", "10.0.0.32"],
+         "answer": 0,
+         "why": "Host bits are 5, so there are 32 addresses. The block is 10.0.0.0–10.0.0.31. The last address is the broadcast."},
+        {"q": "169.254.0.0/16 is used as:",
+         "options": ["IPv4 link-local (APIPA) addressing, typically when a host cannot obtain an address", "A second RFC 1918 private block for large ISPs", "The loopback range", "The multicast range"],
+         "answer": 0,
+         "why": "Automatic Private IP Addressing lives in 169.254.0.0/16. Loopback is 127.0.0.0/8. Multicast is 224.0.0.0/4."},
+        {"q": "The mask 255.255.255.192 is which prefix?",
+         "options": ["/26", "/24", "/25", "/28"],
+         "answer": 0,
+         "why": "192 in the last octet is 11000000 — two extra 1-bits on top of /24, which is /26. Usable hosts = 62."},
+        {"q": "Which address is a unicast address a host may be assigned on 192.168.1.0/24?",
+         "options": ["192.168.1.1", "192.168.1.0", "192.168.1.255", "224.0.0.1"],
+         "answer": 0,
+         "why": ".0 is the network address and .255 is the broadcast on a /24, so neither is a usable host address. 224.0.0.1 is multicast."},
+        {"q": "VLSM means:",
+         "options": ["Using more than one subnet size inside the same allocated block, so each subnet is only as large as it needs to be", "Using only /24 subnets everywhere", "Converting the whole network to IPv6", "A kind of fibre connector"],
+         "answer": 0,
+         "why": "Variable Length Subnet Masking is efficient addressing: a /30 for a link, a /28 for a small group, a /24 for a busy LAN, taken from the same original block."},
+        {"q": "Which IPv4 range is loopback?",
+         "options": ["127.0.0.0/8", "10.0.0.0/8", "169.254.0.0/16", "224.0.0.0/4"],
+         "answer": 0,
+         "why": "127.0.0.1 (and the rest of 127.0.0.0/8) always means 'this host'. Traffic to it should not leave the machine."},
+        {"q": "You need at least 50 usable hosts in a subnet. What is the smallest prefix (longest prefix length) that meets that, using the − 2 rule?",
+         "options": ["/26 (62 usable)", "/27 (30 usable)", "/28 (14 usable)", "/30 (2 usable)"],
+         "answer": 0,
+         "why": "A /27 only has 30 usable addresses, which is too small. A /26 has 6 host bits: 64 − 2 = 62, which is the tightest fit of the options."},
+    ],
+))
+
+# ---------------------------------------------------------------------------
+# Module 12
+# ---------------------------------------------------------------------------
+MODULES.append(module(
+    12, "IPv6 Addressing",
+    "Why IPv6 exists, how addresses are written, and the main types you will configure.",
+    [
+        {
+            "title": "Why IPv6 is here",
+            "body": "A 32-bit IPv4 space is too small for a planet of devices, even with private addresses and NAT. **IPv6** uses **128-bit** addresses, which is enough to give every network a generous block and still have room left. IPv6 also cleans up some IPv4 baggage: no broadcasts, a simpler base header, and address configuration built into the protocol.",
+        },
+        {
+            "title": "How an IPv6 address is written",
+            "body": "The full form is **eight groups of four hex digits**, separated by colons, for example `2001:0db8:0000:0000:0000:0000:0000:0001`. You may drop leading zeros in a group (`0db8` becomes `db8`). You may replace **one** run of all-zero groups with `::`. The same address shortens to `2001:db8::1`. RFC 5952 prefers lowercase and only the longest zero-run as `::`.",
+        },
+        {
+            "title": "The types you must be able to name",
+            "body": "A **global unicast address (GUA)** is globally routable and currently comes from **2000::/3**. A **unique local address (ULA)** is private-ish and lives in **fc00::/7**, with addresses you actually generate starting `fd`. A **link-local address (LLA)** is in **fe80::/10** and is required on every working IPv6 interface; it is not routed off the link. **Multicast** is **ff00::/8**. There is **no broadcast**. The loopback is `::1`. The unspecified address is `::`.",
+        },
+        {
+            "title": "The usual shape of a GUA",
+            "body": "A very common plan is a **/48** or similar block for a site, a **/64** for each LAN, and the last 64 bits as the **interface identifier**. You do not subnet IPv6 by nibbling host bits the way you do in IPv4; you keep **/64 on the LAN** and subnet in the bits to the left of that. Point-to-point links often use /64 as well, or sometimes a longer prefix, depending on policy.",
+        },
+        {
+            "title": "Link-local is always there",
+            "body": "Even if you never configure a GUA, an IPv6 interface will create a **link-local** address (fe80::/10). Neighbour Discovery and many routing protocols use it. You can let the device generate one, or set a short static value such as `fe80::1` so that `show` output is easy to read. Traffic to a link-local destination must also name the outgoing **interface** (the zone), because the same fe80::1 could exist on more than one link.",
+        },
+        {
+            "title": "How a host gets a GUA: SLAAC and DHCPv6",
+            "body": "**SLAAC** (stateless address autoconfiguration) lets a host build a GUA from a prefix in a **Router Advertisement**, plus an interface identifier (historically EUI-64 from the MAC, often a random identifier now for privacy). **DHCPv6** can hand out addresses (stateful) or just extra information such as DNS (stateless, alongside SLAAC). The RA flags tell the host which combination to use.",
+        },
+        {
+            "title": "EUI-64, in case you are asked",
+            "body": "To build a 64-bit interface ID from a 48-bit MAC: split the MAC in half, insert **FFFE**, and flip the **U/L bit** (the second-lowest bit of the first byte). Example idea: `00:11:22:33:44:55` becomes `0211:22ff:fe33:4455`. Many modern hosts prefer a random identifier instead, but you should still be able to do EUI-64 on paper.",
+        },
+        {
+            "title": "Multicast you will actually see",
+            "body": "`ff02::1` is all nodes on the link. `ff02::2` is all routers on the link. A **solicited-node** multicast, used by Neighbour Discovery, is formed from prefix `ff02::1:ff00:0/104` plus the last 24 bits of the target address. These replace the blunt IPv4 broadcast that ARP used.",
+        },
+        {
+            "title": "Configuring a static GUA and checking it",
+            "body": "On a Cisco router, turn on `ipv6 unicast-routing`, then on the interface: `ipv6 address 2001:db8:acad:1::1/64` (and optionally a static link-local). Hosts can be set statically, or they can use SLAAC if they see an RA. Verify with `show ipv6 interface brief` and `ping`. Remember that a ping to a link-local address needs the interface specified.",
+        },
+        {
+            "title": "Subnetting IPv6 without the IPv4 habits",
+            "body": "If you have `2001:db8:acad::/48` and you use /64 LANs, the fourth group is your subnet field: `2001:db8:acad:0::/64`, `2001:db8:acad:1::/64`, up to `2001:db8:acad:ffff::/64` — 65,536 subnets, each with an enormous host space. Count in hex in that group, not in 'usable hosts minus 2'.",
+        },
+    ],
+    [
+        {"q": "An IPv6 address is how long?",
+         "options": ["128 bits", "32 bits", "48 bits", "64 bits only, always"],
+         "answer": 0,
+         "why": "IPv6 addresses are 128 bits, written as eight 16-bit hex groups. 32 bits is IPv4; 48 bits is a MAC."},
+        {"q": "The correctly shortened form of 2001:0db8:0000:0000:0000:0000:0000:0001 is:",
+         "options": ["2001:db8::1", "2001:db8::1::", "2001::db8::1", "2001:0db8:0:0:0:0:0:1::"],
+         "answer": 0,
+         "why": "Drop leading zeros, and replace one contiguous run of zero groups with a single ::. You must not use :: twice, because that would be ambiguous."},
+        {"q": "A link-local IPv6 address starts with:",
+         "options": ["fe80::/10", "2000::/3", "ff00::/8", "fc00::/7"],
+         "answer": 0,
+         "why": "fe80::/10 is link-local. 2000::/3 is the current global unicast space. ff00::/8 is multicast. fc00::/7 is unique local."},
+        {"q": "Which statement about IPv6 broadcasts is right?",
+         "options": ["IPv6 has no broadcast address; it uses multicast (and unicast) instead", "The broadcast is ff:ff:ff:ff:ff:ff, as in Ethernet", "The broadcast is ::ffff", "Every IPv6 packet is a broadcast"],
+         "answer": 0,
+         "why": "There is no IPv6 broadcast. All-nodes multicast (ff02::1) is the 'everyone on this link' tool when you really need it."},
+        {"q": "The IPv6 loopback address is:",
+         "options": ["::1", "127.0.0.1", "fe80::1 always, on every device", "::"],
+         "answer": 0,
+         "why": "::1 is loopback. :: is the unspecified address. 127.0.0.1 is IPv4 loopback. fe80::1 can be used as a link-local address, but that is not loopback."},
+        {"q": "SLAAC is the method where:",
+         "options": ["A host builds its own GUA from a prefix advertised by a router, plus an interface identifier", "A DHCPv4 server hands out a 32-bit address", "A switch writes a static MAC table", "IANA allocates a /8 to an ISP"],
+         "answer": 0,
+         "why": "Stateless address autoconfiguration uses Router Advertisements. DHCPv6 is a separate, optional way to get addresses or DNS information."},
+        {"q": "Unique local IPv6 addresses are in:",
+         "options": ["fc00::/7 (in practice often starting fd)", "2000::/3", "ff00::/8", "fe80::/10"],
+         "answer": 0,
+         "why": "ULA is fc00::/7; locally assigned ones set the L bit and so start with fd. They are not meant to be routed on the public internet."},
+        {"q": "The usual prefix length of an IPv6 LAN (so hosts can use SLAAC) is:",
+         "options": ["/64", "/128 only", "/24", "/30"],
+         "answer": 0,
+         "why": "SLAAC is defined around a 64-bit interface identifier, so the LAN prefix is /64. /128 is a single address; /24 and /30 are IPv4 habits."},
+        {"q": "In the EUI-64 process you insert FFFE into the MAC and also:",
+         "options": ["Flip the U/L bit in the first byte", "Invert every bit of the MAC", "Drop the last 16 bits", "Add 192.168.0.1"],
+         "answer": 0,
+         "why": "Insert FFFE in the middle, flip the universal/local bit. That is the whole transformation."},
+        {"q": "ff02::1 is the multicast address for:",
+         "options": ["All IPv6 nodes on the local link", "All DNS servers in the world", "The IPv6 loopback", "A single static GUA"],
+         "answer": 0,
+         "why": "ff02::1 is all-nodes, link-local scope. ff02::2 is all-routers on the link."},
+    ],
+))
+
+# ---------------------------------------------------------------------------
+# Module 13
+# ---------------------------------------------------------------------------
+MODULES.append(module(
+    13, "ICMP",
+    "How ping and traceroute use ICMP to test a path, and how to read the results.",
+    [
+        {
+            "title": "ICMP is the network's error and test messenger",
+            "body": "**ICMP** (IPv4, RFC 792) and **ICMPv6** (RFC 4443) are network-layer protocols that carry error reports and diagnostic messages, not user data such as a web page. They travel in IP packets, with the Protocol field set to 1 (IPv4) or the Next Header set to 58 (IPv6).",
+        },
+        {
+            "title": "Ping is Echo Request and Echo Reply",
+            "body": "The `ping` tool sends an **Echo Request**. If the target is reachable and allowed to answer, it returns an **Echo Reply**. IPv4 uses types 8 and 0; ICMPv6 uses types 128 and 129. A reply proves two-way reachability for ICMP at least — a firewall may still be blocking other ports.",
+        },
+        {
+            "title": "Reading a Cisco ping",
+            "body": "On Cisco IOS, a success is often shown as `!!!!!` (five replies). A dot `.` is a timeout. `U` is unreachable. The round-trip times tell you about delay, not about bandwidth. Always ping the nearby hop first, then walk further out; a failure two hops away is a different problem from a failure on the local cable.",
+        },
+        {
+            "title": "Time Exceeded and traceroute",
+            "body": "**Traceroute** (or `tracert` on Windows) finds each hop on the path. It sends packets with a TTL (or Hop Limit) of 1, then 2, and so on. The router that decrements the value to 0 discards the packet and sends back an ICMP **Time Exceeded**. The last hop should answer with a port unreachable (classic UDP traceroute) or an echo reply (Windows `tracert`, which uses ICMP).",
+        },
+        {
+            "title": "Destination Unreachable is a useful 'no'",
+            "body": "A router or host may send **Destination Unreachable** when a network, host or port cannot be reached, or when a packet is bigger than the next link's MTU and cannot be forwarded (this is also how Path MTU Discovery is told to shrink a packet). Do not ignore these messages: they often name the reason a test failed.",
+        },
+        {
+            "title": "ICMPv6 does more than ping",
+            "body": "As well as echo, ICMPv6 carries **Neighbour Discovery** (Router Solicitation and Advertisement, Neighbour Solicitation and Advertisement) and **Multicast Listener Discovery**. So in IPv6, ICMP is not only a troubleshooting tool — parts of ordinary address configuration depend on it. Blocking all ICMPv6 on a LAN will break more than ping.",
+        },
+        {
+            "title": "A careful way to test",
+            "body": "Ping the local interface, then the default gateway, then a host on another local subnet, then a remote address, then a name (which also tests DNS). That order — sometimes called a divide-and-conquer or bottom-up habit — stops you from blaming DNS when the cable is unplugged. Traceroute comes in once you know the far end is the problem, not the local NIC.",
+        },
+        {
+            "title": "What a failed ping does not prove",
+            "body": "No reply can mean the host is down, an address is wrong, a firewall is dropping ICMP, or a return path is missing. It does not, on its own, prove that 'the internet is down'. Combine ping with interface status, ARP or ND tables, and the routing table before you change a lot of configuration.",
+        },
+    ],
+    [
+        {"q": "A successful ping shows that:",
+         "options": ["Echo Request and Echo Reply can travel between the two addresses (so a basic IP path exists)", "Every TCP and UDP port on the target is open", "The target's disk is healthy", "DNS is definitely working"],
+         "answer": 0,
+         "why": "Ping tests ICMP echo, not web ports or DNS. A reply is strong evidence of a working IP path for that traffic; a failure is more ambiguous."},
+        {"q": "On IPv4, Echo Request and Echo Reply are ICMP types:",
+         "options": ["8 and 0", "3 and 11", "128 and 129", "53 and 80"],
+         "answer": 0,
+         "why": "Type 8 is request, type 0 is reply. Types 128 and 129 are the ICMPv6 echo pair. 3 is destination unreachable; 11 is time exceeded."},
+        {"q": "Traceroute discovers hops by:",
+         "options": ["Sending packets with increasing TTL (or Hop Limit) and reading ICMP Time Exceeded replies", "Asking a DNS server for a list of routers", "Reading the switch MAC table only", "Opening TCP port 80 on every router"],
+         "answer": 0,
+         "why": "Each router along the path is forced to expire a packet and report itself. That is the whole mechanism."},
+        {"q": "Windows `tracert` typically probes with:",
+         "options": ["ICMP Echo Requests", "TFTP", "ARP only", "BGP"],
+         "answer": 0,
+         "why": "Classic Windows tracert uses ICMP. Many Unix and Cisco traceroute implementations send UDP probes to a high port instead. The replies you care about are still ICMP."},
+        {"q": "If a router decrements TTL to zero, it should:",
+         "options": ["Drop the packet and usually send an ICMP Time Exceeded message to the sender", "Forward it anyway", "Turn it into a broadcast", "Store it in NVRAM"],
+         "answer": 0,
+         "why": "That is how loops are contained, and how traceroute gets its per-hop replies."},
+        {"q": "ICMPv6 Next Header (or protocol) number is:",
+         "options": ["58", "1", "6", "17"],
+         "answer": 0,
+         "why": "1 is ICMPv4, 6 is TCP, 17 is UDP, 58 is ICMPv6."},
+        {"q": "A Destination Unreachable message is useful because it can tell you:",
+         "options": ["That a network, host or port could not be reached, or that a packet was too large", "The administrator's email password", "The exact purchase date of the switch", "That encryption is enabled on the link"],
+         "answer": 0,
+         "why": "The ICMP code adds a reason — net unreachable, host unreachable, port unreachable, packet too big, and others."},
+        {"q": "Blocking all ICMPv6 on an IPv6 LAN is a bad idea because:",
+         "options": ["Neighbour Discovery and other core IPv6 functions use ICMPv6, not just ping", "IPv6 cannot run without IPv4 ICMP type 8", "Switches forward frames using ICMP", "DNS will automatically stop"],
+         "answer": 0,
+         "why": "NS, NA, RS and RA are ICMPv6. Filter carefully if you must; do not treat ICMP as optional on IPv6 the way some people treat IPv4 ping."},
+        {"q": "A Cisco IOS ping that prints `.....` (five dots) means:",
+         "options": ["Each request timed out; no reply arrived in time", "Five successful replies", "The command syntax was rejected", "The router reloaded"],
+         "answer": 0,
+         "why": "Exclamation marks are successes; dots are timeouts. You still have to find out why: wrong address, filtering, or a broken path."},
+        {"q": "A good first ping when a host 'cannot get to the internet' is:",
+         "options": ["Its default gateway (and then walk further out)", "A random IPv6 multicast on another continent", "The serial number of the office printer", "255.255.255.255 only, once"],
+         "answer": 0,
+         "why": "If the gateway does not reply, fixing 'the internet' is the wrong job. Start close, then move out, then test names (DNS)."},
+    ],
+))
+
+# ---------------------------------------------------------------------------
+# Module 14
+# ---------------------------------------------------------------------------
+MODULES.append(module(
+    14, "Transport Layer",
+    "TCP and UDP, port numbers, the three-way handshake, and when to use each protocol.",
+    [
+        {
+            "title": "The transport layer talks to processes, not just hosts",
+            "body": "IP gets a packet to the right **host**. The **transport layer** gets the data to the right **process** on that host. It does that with **port numbers**. Two main protocols do the work: **TCP** (Transmission Control Protocol) and **UDP** (User Datagram Protocol).",
+        },
+        {
+            "title": "TCP is reliable and connection-oriented",
+            "body": "TCP sets up a connection before it carries user data, numbers each **segment**, **acknowledges** what has arrived, **resends** what has not, and slows down when the receiver or the network is under pressure (**flow control** and congestion control). Use it when missing or reordered data would be a problem: web pages, email, file transfer, SSH.",
+        },
+        {
+            "title": "UDP is simple and connectionless",
+            "body": "UDP sends a **datagram** and does not set up a session, does not retransmit, and does not adjust a window. The header is only **8 bytes** (source port, destination port, length, checksum). That low overhead is why **DNS queries**, **DHCP**, **TFTP** and many voice or video streams use UDP. If something must be reliable, the application has to handle it.",
+        },
+        {
+            "title": "Port numbers",
+            "body": "A port is a 16-bit number (0–65535). The **destination port** says which service you want (443 for HTTPS, 53 for DNS). The **source port** is usually an **ephemeral** port chosen by the client so the reply can find the right conversation. Together, the two IPs, the two ports and the protocol (TCP or UDP) identify a conversation, sometimes called a socket pair.",
+        },
+        {
+            "title": "IANA port ranges",
+            "body": "IANA splits the space into **system (well-known) ports 0–1023**, **user (registered) ports 1024–49151**, and **dynamic/private ports 49152–65535**. Servers usually listen on a well-known or registered port. Clients usually pick a dynamic port. Some operating systems still use a wider ephemeral range; if a question asks for the IANA ranges, use the three bands above.",
+        },
+        {
+            "title": "The TCP three-way handshake",
+            "body": "To start a connection: the client sends a segment with **SYN**, the server replies with **SYN-ACK**, and the client sends **ACK**. Only after that do they send the stream of data. The flags are bits in the TCP header; you will also meet **FIN** (I am finished sending), **RST** (abort), **PSH** and **URG**.",
+            "analogy": "You ring a doorbell (SYN), the host opens the door and says hello (SYN-ACK), and you say hello back (ACK) before you start the actual conversation.",
+        },
+        {
+            "title": "Ending a TCP connection",
+            "body": "A polite close uses **FIN** and **ACK** in each direction (four segments in the full case), because each side has its own stream to close. A **RST** aborts at once, which is what you often see when a port is closed or a firewall rejects the session.",
+        },
+        {
+            "title": "Sequence numbers, ACKs and the window",
+            "body": "Each TCP byte has a **sequence number**. An **acknowledgement** tells the sender the next byte the receiver expects. The **window** says how many bytes may be in flight before the sender has to wait. If the window shrinks to zero, the sender pauses — that is **flow control**. Retransmissions use timers and missing ACKs to spot lost data.",
+        },
+        {
+            "title": "When a question asks 'TCP or UDP?'",
+            "body": "Ask: does this application already need speed more than guaranteed delivery, or would a lost bit ruin the file? Web (HTTP/HTTPS), email (SMTP, IMAP, POP3), FTP and SSH are TCP. DNS queries are usually UDP (and fall back to TCP for large answers or zone transfers). DHCP and TFTP are UDP. Voice is often UDP with the application hiding a lost packet.",
+        },
+        {
+            "title": "A UDP 'session' is just the ports",
+            "body": "UDP has no handshake, so a server process simply listens on a port and a client sends a datagram to it. The server replies to the source IP and source port it saw. If a reply is lost, the client application may retry — DNS resolvers do this all the time — but UDP itself will not.",
+        },
+    ],
+    [
+        {"q": "The transport layer uses port numbers to:",
+         "options": ["Deliver data to the correct process on a host", "Choose the next-hop router", "Build an Ethernet FCS", "Assign an IPv6 GUA"],
+         "answer": 0,
+         "why": "Ports are the Layer 4 address. IP gets you to the host; the port gets you to the application."},
+        {"q": "Which statement about TCP is right?",
+         "options": ["It is connection-oriented and can retransmit lost data", "It has an 8-byte header and never retransmits", "It cannot carry HTTPS", "It replaces the need for IP addresses"],
+         "answer": 0,
+         "why": "TCP sets up a connection, numbers data, acknowledges it and resends on loss. UDP is the lightweight, no-retransmission protocol."},
+        {"q": "A UDP header is:",
+         "options": ["8 bytes: source port, destination port, length and checksum", "20 bytes or more, like a typical TCP header", "40 bytes, like the IPv6 base header", "No header at all"],
+         "answer": 0,
+         "why": "Those four fields are the entire UDP header. That simplicity is the point."},
+        {"q": "The IANA well-known (system) port range is:",
+         "options": ["0–1023", "1024–49151", "49152–65535", "0–65535 as a single well-known range"],
+         "answer": 0,
+         "why": "0–1023 system, 1024–49151 registered, 49152–65535 dynamic. Memorise all three; questions like to swap them."},
+        {"q": "The three-way handshake, in order, is:",
+         "options": ["SYN, then SYN-ACK, then ACK", "FIN, then FIN, then RST", "ACK, then SYN, then data only", "UDP query, then ARP, then SYN"],
+         "answer": 0,
+         "why": "Client SYN, server SYN-ACK, client ACK. Data follows once the connection is open."},
+        {"q": "Flow control in TCP is mainly about:",
+         "options": ["The receiver advertising a window so the sender does not overwhelm it", "Changing the IP TTL", "Encrypting the header", "Selecting a fibre or copper path"],
+         "answer": 0,
+         "why": "The window size tells the sender how much unacknowledged data is allowed. A window of zero means 'stop for now'."},
+        {"q": "DNS queries on the public internet are typically sent with:",
+         "options": ["UDP port 53 (using TCP 53 when the answer is large or for zone transfers)", "TCP port 80 only", "UDP port 67", "TCP port 22"],
+         "answer": 0,
+         "why": "Port 53 is DNS. UDP is the usual query transport; TCP is used as a fallback and for zone transfers. 67 is DHCP server, 22 is SSH, 80 is HTTP."},
+        {"q": "Which application is the best fit for UDP among these options?",
+         "options": ["A live voice stream that can tolerate a lost packet better than a delay", "A bank file transfer that must not be missing a single byte", "An SSH login", "Downloading a software update with HTTPS"],
+         "answer": 0,
+         "why": "A late voice packet is often useless, so a simple, low-delay transport is attractive. Files, SSH and HTTPS need reliability and so use TCP."},
+        {"q": "A polite TCP close uses which flag to mean 'I have no more data to send'?",
+         "options": ["FIN", "SYN", "URG", "PSH only"],
+         "answer": 0,
+         "why": "FIN finishes a stream. SYN starts a connection. RST aborts. PSH is a hint to pass data up promptly."},
+        {"q": "The source port on a typical client request is:",
+         "options": ["An ephemeral (dynamic) port chosen by the client for this conversation", "Always 80", "Always 0", "The same as the well-known destination port"],
+         "answer": 0,
+         "why": "The destination port selects the service (for example 443). The source port lets the client tell several conversations apart when the replies come back."},
+    ],
+))
+
+# ---------------------------------------------------------------------------
+# Module 15
+# ---------------------------------------------------------------------------
+MODULES.append(module(
+    15, "Application Layer",
+    "The everyday services: web, email, DNS, DHCP and file transfer, and the ports they use.",
+    [
+        {
+            "title": "Where the application layer sits",
+            "body": "In the TCP/IP model, the **application layer** is everything the user or a program sees: the protocol that carries a web page, an email, a name lookup or a file. In OSI terms this also covers **presentation** (format, encryption, compression) and **session** (starting and ending a dialogue). You configure and troubleshoot these services by name and by port, not by 'Layer 6'.",
+        },
+        {
+            "title": "Client–server and peer-to-peer",
+            "body": "In a **client–server** model, a dedicated server listens for requests (a web server, a DNS server). In a **peer-to-peer** model, hosts act as both client and server for each other (many file-sharing and some collaboration tools). Home networks often mix both: your laptop is a client of a web server, and also a peer if you share a folder.",
+        },
+        {
+            "title": "The web: HTTP and HTTPS",
+            "body": "**HTTP** usually uses **TCP port 80** and sends requests (GET, POST and others) for resources. **HTTPS** is HTTP inside a TLS-protected session, usually on **TCP port 443**. A URL such as `https://learn.solent.ac.uk` already names the protocol, the host to resolve, and (implicitly) the port.",
+        },
+        {
+            "title": "Email is several protocols, not one",
+            "body": "**SMTP** (TCP **25** between servers; often **587** for a client submitting mail) sends a message on its way. To read mail, a client typically uses **IMAP** (TCP **143**, or **993** with TLS) which keeps mail on the server, or **POP3** (TCP **110**, or **995** with TLS) which often downloads and may remove it. Mixing these up is a common exam trap.",
+        },
+        {
+            "title": "DNS turns names into addresses",
+            "body": "People use names; packets use addresses. A **resolver** on your host asks a DNS server, usually on **port 53**. An **A** record maps a name to an IPv4 address; an **AAAA** record maps it to IPv6. If DNS is broken, 'the internet is down' often still pings by address — which is a clue to test with `nslookup` or `dig`, not only with a browser.",
+        },
+        {
+            "title": "DHCP hands out IPv4 settings automatically",
+            "body": "**DHCP** uses a four-step process often remembered as **DORA**: Discover, Offer, Request, Acknowledge. Messages use **UDP port 67** on the server and **UDP port 68** on the client. A successful lease gives the host an address, mask, default gateway and usually a DNS server, for a limited time (the lease).",
+        },
+        {
+            "title": "File transfer: FTP and TFTP",
+            "body": "**FTP** uses **TCP port 21** for control, and **TCP port 20** for the data connection in active mode (passive mode uses a different, negotiated data port). It can list directories and resume transfers, and it sends credentials in the clear unless wrapped in TLS. **TFTP** uses **UDP port 69**, is much simpler, and is often used to copy IOS images or configurations in a lab — with no login and no extra reliability of its own.",
+        },
+        {
+            "title": "A port table worth practising as flashcards",
+            "body": "20/21 FTP, 22 SSH, 23 Telnet, 25 SMTP, 53 DNS, 67/68 DHCP, 69 TFTP, 80 HTTP, 110 POP3, 143 IMAP, 443 HTTPS. SNMP (161/162) and NTP (123) are also worth knowing. The Cards tab drills these until they are automatic.",
+        },
+        {
+            "title": "When a service 'does not work'",
+            "body": "Ask three questions. Is the name resolving (DNS)? Is the address reachable (ping or a hop-by-hop check)? Is the port actually open and permitted (a firewall or a service that is not running will fail here even if ping works)? That sequence stops you from reinstalling a browser when the problem is a typo in the DHCP DNS field.",
+        },
+    ],
+    [
+        {"q": "HTTPS typically uses:",
+         "options": ["TCP port 443", "UDP port 443 only, never TCP", "TCP port 80", "UDP port 53"],
+         "answer": 0,
+         "why": "HTTPS is HTTP over TLS, almost always on TCP 443. TCP 80 is plain HTTP. (HTTP/3 can use UDP 443, but the standard ITN answer for HTTPS is TCP 443.)"},
+        {"q": "Which pair is right for DHCP?",
+         "options": ["UDP 67 on the server, UDP 68 on the client", "TCP 67 both ways", "UDP 53 both ways", "TCP 80 and 443"],
+         "answer": 0,
+         "why": "BOOTP/DHCP reserved those two ports: 67 the server, 68 the client."},
+        {"q": "The four steps of a typical IPv4 DHCP handshake are:",
+         "options": ["Discover, Offer, Request, Acknowledge", "SYN, SYN-ACK, ACK, FIN", "Request, Reply, Report, Release", "ARP, ACK, DNS, Offer"],
+         "answer": 0,
+         "why": "DORA is the standard memory aid for DHCP. SYN/SYN-ACK/ACK is the TCP handshake, which is a different process."},
+        {"q": "An AAAA record in DNS maps a name to:",
+         "options": ["An IPv6 address", "An IPv4 address", "A mail server name only", "A MAC address"],
+         "answer": 0,
+         "why": "A is IPv4, AAAA is IPv6. That is the whole distinction."},
+        {"q": "Which protocol is primarily used to send email between servers?",
+         "options": ["SMTP", "IMAP", "POP3", "HTTP"],
+         "answer": 0,
+         "why": "SMTP is the sending and relaying protocol. IMAP and POP3 are how a client reads or collects mail."},
+        {"q": "IMAP is often preferred over POP3 in a student or work setting because:",
+         "options": ["It is designed to keep mail on the server and stay in sync from several devices", "It uses UDP and is therefore faster in every case", "It replaces the need for SMTP", "It does not use passwords"],
+         "answer": 0,
+         "why": "IMAP works with a mailbox that stays on the server. POP3 traditionally downloads (and may delete) messages, which is awkward if you use a phone and a laptop."},
+        {"q": "TFTP, as used in many Cisco labs, runs on:",
+         "options": ["UDP port 69", "TCP port 21", "TCP port 22", "UDP port 67"],
+         "answer": 0,
+         "why": "TFTP is the lightweight, UDP-based file transfer protocol on port 69. FTP control is TCP 21; SSH is TCP 22; DHCP server is UDP 67."},
+        {"q": "A browser cannot open a named website, but ping to the site's IP address works. The most likely first suspect is:",
+         "options": ["DNS name resolution", "A completely unplugged network cable", "That IPv4 has been removed from the internet", "A failed enable secret on your laptop"],
+         "answer": 0,
+         "why": "Ping by address already proved a path. Failure by name points at DNS (or a typo in the name)."},
+        {"q": "FTP's well-known control port is:",
+         "options": ["TCP 21 (with TCP 20 used for data in active mode)", "UDP 21 only", "TCP 25", "UDP 69"],
+         "answer": 0,
+         "why": "Control = 21, active-mode data = 20. Passive mode negotiates a different data port. TFTP is the one on UDP 69."},
+        {"q": "In the TCP/IP model, HTTP, DNS and SMTP sit at the:",
+         "options": ["Application layer", "Internet layer", "Network access layer", "Physical layer"],
+         "answer": 0,
+         "why": "Those are application protocols. The internet layer is IP. Network access is the link and the physical medium."},
+    ],
+))
+
+# ---------------------------------------------------------------------------
+# Module 16
+# ---------------------------------------------------------------------------
+MODULES.append(module(
+    16, "Network Security Fundamentals",
+    "Common threats, and the basic hardening steps you should apply to a switch or router.",
+    [
+        {
+            "title": "Why a lab device still needs hardening",
+            "body": "A switch or router is a powerful target: anyone who controls it can listen, redirect or cut off traffic. Even on a small network you should assume that default passwords, unused services and clear-text logins will be tried. Security is one of the four requirements of a reliable network, not an optional extra.",
+        },
+        {
+            "title": "A short map of threats",
+            "body": "**Malware** is software that does harm (viruses, worms, trojans, ransomware). **Social engineering** attacks the person, not the packet (phishing is the common example). **Denial of service (DoS)** tries to exhaust a link or a host so nobody else can use it. **Spoofing** means pretending to be another address or device (fake ARP, fake IP, fake emails). You do not need a long catalogue in ITN, but you should be able to recognise each of these words.",
+        },
+        {
+            "title": "Defence is layered",
+            "body": "No single control is enough. Combine **physical** security (who can touch the console), **device** hardening (passwords, SSH, unused ports), **network** controls (firewalls, private addressing, perhaps ACLs later in the CCNA path), and **user** habits (updates, scepticism about unexpected links). If one layer fails, the next should still help.",
+        },
+        {
+            "title": "Passwords, done properly",
+            "body": "Use **`enable secret`** rather than `enable password`. Use **`service password-encryption`** so casual readers of the config do not see line passwords in the clear — and remember that type 7 is weak. Prefer **SSH** to Telnet, and use a **local username** (`username ... secret ...` plus `login local` on the VTY lines) rather than a shared line password alone. Do not leave default credentials in place.",
+        },
+        {
+            "title": "SSH rather than Telnet",
+            "body": "Telnet (TCP 23) sends every keystroke, including passwords, in the clear. **SSH** (TCP 22) encrypts the session. A typical setup is: set a domain name, generate an RSA key pair, create a local user, and on the VTY lines use `transport input ssh` and `login local`. Then shut Telnet off. Console access still needs its own password, because a person with a cable can walk up to the device.",
+        },
+        {
+            "title": "Banners, unused ports, unused services",
+            "body": "A **banner motd** should warn that access is authorised only — it is a legal and practical notice, not a decoration. On a switch, **shutdown unused ports** and put them in an unused VLAN if you can. Turn off services you do not use. Every open door you forget is a door somebody else can try.",
+        },
+        {
+            "title": "Keep the software and the clock honest",
+            "body": "Running a current, supported **IOS** image with known fixes is part of hardening, not a luxury. A correct clock (and later, NTP) makes logs meaningful when you investigate an incident. Back up the configuration to a safe place so that a mistake or a failed upgrade is recoverable.",
+        },
+        {
+            "title": "What this module is not",
+            "body": "ITN does not expect you to configure a full firewall policy or an intrusion-prevention system. It does expect you to stop making the easy mistakes: empty passwords, Telnet, unused ports left up, a running-config that has never been saved or backed up, and a banner that claims 'welcome, please come in'. Get those right on every lab device, every time.",
+        },
+    ],
+    [
+        {"q": "Which login method encrypts the session, including passwords, as you type?",
+         "options": ["SSH", "Telnet", "A banner motd on its own", "An unconfigured VTY line with no login"],
+         "answer": 0,
+         "why": "SSH (port 22) is encrypted. Telnet (port 23) is clear text and should not be used on a network you care about."},
+        {"q": "Why is `enable secret` preferred to `enable password`?",
+         "options": ["The secret is stored as a hash, not as recoverable plain text", "The secret is shorter", "The password command encrypts traffic on the wire", "They are identical in every IOS release"],
+         "answer": 0,
+         "why": "A hashed secret is the right way to protect privileged EXEC. `enable password` is a legacy, weaker option."},
+        {"q": "Phishing is an example of:",
+         "options": ["Social engineering — attacking the person rather than a protocol bug", "A fibre-optic attenuation problem", "A Layer 1 collision", "An IPv6 prefix length error"],
+         "answer": 0,
+         "why": "The message tries to trick a human into giving up a password or clicking something dangerous. The protocol may be working perfectly."},
+        {"q": "A denial-of-service attack aims to:",
+         "options": ["Exhaust a resource so legitimate users cannot get a service", "Improve QoS for voice", "Rotate log files more neatly", "Set the hostname automatically"],
+         "answer": 0,
+         "why": "DoS is about availability: fill a link, a CPU or a table until the service is unusable."},
+        {"q": "A sensible way to treat unused switch ports is to:",
+         "options": ["Shut them down (and, if you can, place them in an unused VLAN)", "Leave them up so visitors can plug in without asking", "Configure them with the default VLAN and a DHCP helper as a courtesy", "Mirror every unused port to the internet"],
+         "answer": 0,
+         "why": "An unused open port is a convenient place for someone to attach an unauthorised device. Shutdown is the basic control."},
+        {"q": "The usual TCP port for SSH is:",
+         "options": ["22", "23", "80", "69"],
+         "answer": 0,
+         "why": "22 is SSH, 23 is Telnet, 80 is HTTP, 69 is TFTP."},
+        {"q": "`service password-encryption` should be understood as:",
+         "options": ["A weak, reversible disguise of some passwords in the configuration file", "A replacement for SSH", "Strong hashing equal to a modern enable secret", "Encryption of every packet on every interface"],
+         "answer": 0,
+         "why": "Type 7 is better than nothing on a casual glance at the screen, but it is not strong cryptography. Use secrets and SSH as well."},
+        {"q": "A banner motd is useful because it:",
+         "options": ["Displays a warning that only authorised users should access the device", "Encrypts the enable secret a second time", "Replaces the need for a console password", "Assigns IPv6 addresses"],
+         "answer": 0,
+         "why": "The banner is a notice (and often a legal warning). It does not authenticate anyone on its own."},
+        {"q": "Spoofing, in the sense used here, means:",
+         "options": ["Pretending to be another address or device, for example with a fake ARP reply", "Compressing a packet to save bandwidth", "Using fibre instead of copper", "Setting a hostname that matches a building name"],
+         "answer": 0,
+         "why": "A spoofed source (IP, MAC, email) is a lie about identity. ARP spoofing is a common LAN example."},
+        {"q": "To require SSH and a local user on the VTY lines, you would include:",
+         "options": ["login local and transport input ssh, plus a username secret and generated keys", "transport input telnet only", "no login, so anyone can attach", "ip default-gateway only"],
+         "answer": 0,
+         "why": "Keys, a local user, `login local`, and `transport input ssh` together make a basic encrypted remote login. Telnet-only is the opposite of the goal."},
+    ],
+))
+
+# ---------------------------------------------------------------------------
+# Module 17
+# ---------------------------------------------------------------------------
+MODULES.append(module(
+    17, "Build a Small Network",
+    "Putting the pieces together: devices, verification commands, and a calm troubleshooting order.",
+    [
+        {
+            "title": "The small network is the pattern for larger ones",
+            "body": "A typical small network still has **end devices**, one or more **switches**, a **router** (or a combined router and firewall), and maybe a wireless access point. Addressing, default gateways, basic security and verification do not change just because a later network has more floors. If you can design, build and fix this, you have the habit the rest of CCNA builds on.",
+        },
+        {
+            "title": "Plan before you plug in",
+            "body": "Write down the hostname, the LAN prefix, the gateway address, the management address of the switch, and which ports go where. Give each interface a **description**. Decide on SSH, secrets and a banner as part of the plan, not as an afterthought. Most lab failures are planning failures, not mysterious IOS bugs.",
+        },
+        {
+            "title": "Scale without starting again",
+            "body": "A network grows more cleanly if you have already thought about **hierarchical** design: an access layer where hosts plug in, and (as you grow) distribution and core layers that you will meet properly later in the CCNA path. Leaving spare ports, spare addresses and documented VLANs (when you start using them) is cheaper than a redesign.",
+        },
+        {
+            "title": "Verification is a short toolkit",
+            "body": "On a host: `ipconfig` / `ip addr`, `ping`, `tracert` / `traceroute`, `arp -a`, `nslookup`. On IOS: `show ip interface brief`, `show ipv6 interface brief`, `show ip route`, `show ip arp`, `show mac address-table`, `show running-config`, `show version`. You do not need every option of every command. You need to know which command answers which question.",
+        },
+        {
+            "title": "Ping and traceroute, used as a pair",
+            "body": "Ping answers 'can I get there and back, right now, for ICMP?' Traceroute answers 'which hop is the last good one, and where does it go quiet?' Read both: a ping failure at the gateway is a different job from a traceroute that dies three hops into a provider network.",
+        },
+        {
+            "title": "Three troubleshooting orders",
+            "body": "**Bottom-up** starts at the physical layer (cables, lights, interfaces) and climbs. **Top-down** starts at the application (the browser, the name, the port) and works down. **Divide and conquer** starts in the middle, often at the network layer (can I ping the gateway? can I ping by address?). There is no single correct religion; pick one and be consistent, so you do not change three things at once.",
+        },
+        {
+            "title": "A practical sequence for 'it does not connect'",
+            "body": "Is the interface up/up? Right cable, right port, right speed and duplex? Does the host have a sensible address, mask and gateway (`ipconfig`)? Can it ping the gateway? Is the ARP or ND entry there? Can it ping a remote address? Can it resolve a name? Only then blame the application. If you change something, change one thing, then test again.",
+        },
+        {
+            "title": "Show commands that describe the device itself",
+            "body": "`show version` tells you the software and the uptime. `show running-config` is the live truth of your settings. `show startup-config` is what will load after a reload — compare the two if a change 'vanished'. On a host, `hostname` / the computer name, and the output of `ipconfig /all`, play a similar role.",
+        },
+        {
+            "title": "How this app fits next to NetAcad",
+            "body": "The explainers and quizzes here are for understanding and recall. Packet Tracer and the NetAcad labs are where you build the muscle memory on real (or simulated) devices. When a quiz answer is solid but a lab still fails, it is almost always a typo, an unsaved config, or a step skipped in verification — not a sign that you should start the module again from scratch.",
+        },
+    ],
+    [
+        {"q": "A small office network will almost always include at least:",
+         "options": ["End devices, a switch, and a router (or a device that can route) toward other networks", "Only hubs, and no addresses", "A unique fibre run from every PC to the internet, with no LAN", "A separate router for each printer, and nothing else"],
+         "answer": 0,
+         "why": "Hosts, a LAN switch, and a router (which may be combined with a firewall or wireless AP) is the basic shape."},
+        {"q": "Which IOS command is the fastest way to see interface addresses and up/down state?",
+         "options": ["show ip interface brief", "show version", "banner motd", "transport input ssh"],
+         "answer": 0,
+         "why": "`show ip interface brief` is the standard first glance after cabling and addressing."},
+        {"q": "A host can ping a dotted-decimal address but cannot open a website by name. You should next check:",
+         "options": ["DNS (for example with nslookup), and the DNS server setting from DHCP", "Whether the patch cable exists at all", "The colour of the device hostname", "The enable secret on a core switch in another country"],
+         "answer": 0,
+         "why": "Ping by address already showed a path. A name failure is DNS until proven otherwise."},
+        {"q": "Bottom-up troubleshooting starts with:",
+         "options": ["The physical layer: cables, lights and interface status", "The application, for example a web URL", "Replacing the router immediately", "A full factory reset of every device"],
+         "answer": 0,
+         "why": "Bottom-up climbs the stack from Layer 1. Top-down starts at the application. Both are valid if you stick to them."},
+        {"q": "Divide and conquer, as a troubleshooting habit, often means:",
+         "options": ["Testing a middle layer first (for example pinging a gateway) to see which half of the path is broken", "Changing every setting on every device before testing", "Only ever using traceroute, never ping", "Skipping the physical check forever"],
+         "answer": 0,
+         "why": "A single mid-stack test can tell you whether to look downward (local link, addressing) or upward (application, DNS, ports)."},
+        {"q": "If running-config looks right but the same setting is gone after a reload, the usual cause is:",
+         "options": ["The running configuration was never copied to the startup configuration", "IPv6 has been banned on that router", "Ping deletes the configuration", "The hostname is too short"],
+         "answer": 0,
+         "why": "RAM is forgotten at reload. `copy running-config startup-config` is the command that makes a change persist."},
+        {"q": "Which pair is a host command followed by an IOS command that both help with 'who is this IPv4 neighbour?'",
+         "options": ["arp -a and show ip arp", "nslookup and show version", "tracert and hostname", "ipconfig /all and banner motd"],
+         "answer": 0,
+         "why": "Those two display the ARP cache. nslookup is DNS; show version is software and uptime."},
+        {"q": "A ping to the default gateway fails, and the interface on the PC shows an APIPA address (169.254.x.x). A likely cause is:",
+         "options": ["The host did not get a DHCP lease, so it has no valid gateway either", "IPv6 SLAAC has taken over IPv4", "The MAC broadcast address has changed", "SSH is misconfigured on a different floor"],
+         "answer": 0,
+         "why": "169.254.0.0/16 is link-local/APIPA, used when DHCP has not provided an address. There will be no useful default gateway in that situation."},
+        {"q": "show version is the command you use when you want to know:",
+         "options": ["The software image and how long the device has been up", "The IPv4 ARP table", "The MAC address table only", "The list of DNS AAAA records"],
+         "answer": 0,
+         "why": "`show version` is identity and uptime (and memory, among other things). It is not the forwarding or ARP table."},
+        {"q": "A calm troubleshooting rule that prevents a lot of damage is:",
+         "options": ["Change one thing, then test, rather than changing five things at once", "Always factory-reset first", "Always disable IPv4 before testing IPv6", "Never look at interface lights, because they are misleading in every case"],
+         "answer": 0,
+         "why": "If you change several things, you cannot tell which change helped or which one made it worse. One change, one test."},
+    ],
+))
+
+FLASHCARDS = []
+
+
+def card(deck, front, back, extra=None):
+    FLASHCARDS.append({
+        "id": f"{deck}-{len([c for c in FLASHCARDS if c['deck'] == deck]) + 1:03d}",
+        "deck": deck,
+        "front": front,
+        "back": back,
+        **({"extra": extra} if extra else {}),
+    })
+
+
+# ---- Ports (IANA) ----
+for front, back, extra in [
+    ("Which port does SSH use, and over which transport?", "TCP 22", "IANA service name: ssh."),
+    ("Which port does Telnet use?", "TCP 23", "Clear text. Prefer SSH on a real network."),
+    ("FTP control and (active-mode) data ports?", "TCP 21 (control) and TCP 20 (data)", "Passive mode negotiates a different data port."),
+    ("SMTP between mail servers typically uses which port?", "TCP 25", "Client submission is often TCP 587, with implicit TLS sometimes on 465."),
+    ("DNS uses which port?", "UDP and TCP 53", "Queries are usually UDP; TCP is used for large answers and zone transfers."),
+    ("DHCP server and client ports?", "UDP 67 (server) and UDP 68 (client)", "These are the BOOTP ports that DHCP reused."),
+    ("TFTP uses which port?", "UDP 69", "Simple, no login, often used in labs to copy images or configs."),
+    ("HTTP uses which port?", "TCP 80", "Plain web traffic."),
+    ("HTTPS uses which port?", "TCP 443", "HTTP inside a TLS session. The usual ITN answer is TCP 443."),
+    ("POP3 and its TLS wrapper?", "TCP 110 (POP3), TCP 995 (POP3S)", "Used to collect mail, often downloading it from the server."),
+    ("IMAP and its TLS wrapper?", "TCP 143 (IMAP), TCP 993 (IMAPS)", "Used to read mail that stays on the server."),
+    ("SNMP query and trap ports?", "UDP 161 (SNMP) and UDP 162 (SNMP traps)", "Used to monitor and manage devices."),
+    ("NTP uses which port?", "UDP 123", "Network Time Protocol, for clocks."),
+    ("What is the IANA well-known (system) port range?", "0–1023", "Registered (user) ports are 1024–49151; dynamic ports are 49152–65535."),
+    ("What is the IANA registered (user) port range?", "1024–49151", "Well-known: 0–1023. Dynamic: 49152–65535."),
+    ("What is the IANA dynamic / private port range?", "49152–65535", "Clients usually pick a source port from the dynamic range (some operating systems use a wider ephemeral range)."),
+]:
+    card("ports", front, back, extra)
+
+# ---- OSI and TCP/IP ----
+for front, back, extra in [
+    ("Name the seven OSI layers, from Layer 7 down to Layer 1.",
+     "Application, Presentation, Session, Transport, Network, Data link, Physical",
+     "A common memory aid is 'All People Seem To Need Data Processing'."),
+    ("What is the usual PDU name at the transport layer for TCP?", "Segment", "UDP's PDU is often called a datagram."),
+    ("What is the usual PDU name at the network layer?", "Packet", "IPv4 or IPv6 packet."),
+    ("What is the usual PDU name at the data link layer?", "Frame", "For example an Ethernet frame."),
+    ("What is the usual PDU name at the physical layer?", "Bits", "Electrical, light or radio signals."),
+    ("Name the four TCP/IP layers, top to bottom.",
+     "Application, Transport, Internet, Network access",
+     "Network access is sometimes called the Link layer. It covers OSI Layers 1 and 2."),
+    ("Which OSI layers sit inside the TCP/IP application layer?",
+     "Application, Presentation and Session (OSI 7, 6 and 5)",
+     None),
+    ("Which OSI layer uses IP addresses and chooses a path?", "Network (Layer 3)", "Routers are the typical Layer 3 intermediary."),
+    ("Which OSI layer uses MAC addresses on an Ethernet LAN?", "Data link (Layer 2)", "Switches are the typical Layer 2 intermediary."),
+    ("Which OSI layer uses port numbers?", "Transport (Layer 4)", "TCP and UDP."),
+    ("Which OSI layer is concerned with cables, fibre, radio and signalling?", "Physical (Layer 1)", "If the link light is off, start here."),
+    ("A Layer 2 switch forwards ordinary user frames based on what?",
+     "Destination MAC addresses",
+     "It learns those mappings from the source MAC of incoming frames."),
+    ("As data goes down the stack, each layer adding a header is called…",
+     "Encapsulation",
+     "The reverse, at the receiving end, is decapsulation."),
+]:
+    card("models", front, back, extra)
+
+# ---- IOS commands ----
+for front, back, extra in [
+    ("Which command moves you from user EXEC to privileged EXEC?", "enable", "The prompt changes from > to #."),
+    ("Which command enters global configuration mode?", "configure terminal", "Often abbreviated conf t. The prompt becomes (config)#."),
+    ("How do you set the device name to R1?", "hostname R1", "This is a global configuration command."),
+    ("Which command sets a hashed secret for privileged EXEC?", "enable secret", "Preferred over the older enable password command."),
+    ("What does service password-encryption do?",
+     "Applies a weak, reversible (type 7) disguise to some plain passwords in the config file",
+     "It is not a substitute for enable secret or SSH."),
+    ("How do you enter console line configuration?", "line console 0", "Then typically: password, and login."),
+    ("How do you enter the first sixteen VTY lines?", "line vty 0 15", "Used for remote logins such as SSH."),
+    ("Which line command restricts remote access to SSH only?", "transport input ssh", "Use this instead of Telnet on a network you care about."),
+    ("How do you enable a Cisco router interface that is administratively down?", "no shutdown", "Router interfaces are often shutdown by default; switch ports are usually not."),
+    ("How do you set an IPv4 address on an interface?",
+     "ip address <address> <mask>",
+     "Example: ip address 192.168.1.1 255.255.255.0"),
+    ("Which command gives a Layer 2 switch a default gateway for management traffic?",
+     "ip default-gateway <address>",
+     "A router uses a default route instead: ip route 0.0.0.0 0.0.0.0 <next-hop>."),
+    ("How do you add an IPv4 default route?",
+     "ip route 0.0.0.0 0.0.0.0 <next-hop-or-exit-interface>",
+     "This is the 'if nothing else matches, send it here' route."),
+    ("Which global command lets a router forward IPv6 traffic?",
+     "ipv6 unicast-routing",
+     "Without this, the device will not route other people's IPv6 packets."),
+    ("How do you assign an IPv6 GUA on an interface?",
+     "ipv6 address <address>/<prefix>",
+     "Example: ipv6 address 2001:db8:1:1::1/64"),
+    ("Which command saves the running configuration to NVRAM?",
+     "copy running-config startup-config",
+     "Sometimes still written as write memory. Without this, a reload forgets your changes."),
+    ("Which command shows a short table of interfaces, IPv4 addresses and up/down state?",
+     "show ip interface brief",
+     "Often abbreviated show ip int br."),
+    ("Which command displays the IPv4 routing table?", "show ip route", "C = connected, L = local, S = static, among other codes."),
+    ("Which command displays the IPv4 ARP table?", "show ip arp", "On a Windows host the similar command is arp -a."),
+    ("Which command displays the MAC address table on a switch?",
+     "show mac address-table",
+     "Some older releases use show mac-address-table."),
+    ("Which command shows the live configuration in RAM?", "show running-config", "show startup-config shows what will load after a reload."),
+    ("Which command shows the software version and uptime?", "show version", None),
+    ("What does Ctrl+Z (or the end command) do?",
+     "Returns you to privileged EXEC from a config mode",
+     "exit moves up one mode only."),
+    ("How do you enter interface configuration for GigabitEthernet0/0/0?",
+     "interface GigabitEthernet0/0/0",
+     "The exact name depends on the platform (Gi0/1, G0/0/0, and so on)."),
+    ("What is the usual command to test basic IP reachability?",
+     "ping <address>",
+     "On IOS, ! means a reply and . means a timeout."),
+    ("Which command traces the hop-by-hop path from a Cisco device?",
+     "traceroute <address>",
+     "Windows uses tracert, and typically sends ICMP rather than UDP probes."),
+]:
+    card("ios", front, back, extra)
+
+# ---- Addressing extras that sit nicely as cards ----
+for front, back, extra in [
+    ("List the three RFC 1918 private IPv4 blocks.",
+     "10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16",
+     "172.16.0.0/12 covers 172.16.0.0–172.31.255.255."),
+    ("What IPv4 range is loopback?", "127.0.0.0/8", "127.0.0.1 is the address people actually type."),
+    ("What IPv4 range is link-local / APIPA?", "169.254.0.0/16", "A host often falls back to this when DHCP fails."),
+    ("What IPv4 range is multicast?", "224.0.0.0/4 (224.0.0.0–239.255.255.255)", None),
+    ("How many usable hosts in a /24, using the usual − 2 rule?", "254", "256 addresses in total, minus network and broadcast."),
+    ("How many usable hosts in a /27, using the usual − 2 rule?", "30", "32 addresses in total, minus 2."),
+    ("How many usable hosts in a /30, using the usual − 2 rule?", "2", "Used for many IPv4 point-to-point links. /31 (RFC 3021) is the two-address alternative."),
+    ("What is the dotted mask for a /27?", "255.255.255.224", "Block size 32 in the last octet."),
+    ("What is the IPv6 loopback address?", "::1", "The unspecified address is :: ."),
+    ("What prefix is used for IPv6 link-local addresses?", "fe80::/10", "A link-local address is required on every working IPv6 interface."),
+    ("What prefix currently covers IPv6 global unicast?", "2000::/3", "Unique local is fc00::/7; multicast is ff00::/8."),
+    ("Does IPv6 have a broadcast address?",
+     "No. IPv6 uses multicast (and unicast) instead.",
+     "ff02::1 is all nodes on the link; ff02::2 is all routers on the link."),
+    ("What prefix length is usual for an IPv6 LAN so that SLAAC can work?",
+     "/64",
+     "You subnet IPv6 in the bits to the left of those 64, not by borrowing host bits as in IPv4."),
+]:
+    card("addressing", front, back, extra)
+
+
+SOURCES = [
+    {"name": "IANA Service Name and Transport Protocol Port Number Registry",
+     "url": "https://www.iana.org/assignments/service-names-port-numbers/service-names-port-numbers.xhtml"},
+    {"name": "RFC 791 — Internet Protocol (IPv4)", "url": "https://www.rfc-editor.org/rfc/rfc791"},
+    {"name": "RFC 792 — ICMP", "url": "https://www.rfc-editor.org/rfc/rfc792"},
+    {"name": "RFC 826 — ARP", "url": "https://www.rfc-editor.org/rfc/rfc826"},
+    {"name": "RFC 1918 — Address Allocation for Private Internets", "url": "https://www.rfc-editor.org/rfc/rfc1918"},
+    {"name": "RFC 2460 / RFC 8200 — IPv6", "url": "https://www.rfc-editor.org/rfc/rfc8200"},
+    {"name": "RFC 4291 — IPv6 Addressing Architecture", "url": "https://www.rfc-editor.org/rfc/rfc4291"},
+    {"name": "RFC 4443 — ICMPv6", "url": "https://www.rfc-editor.org/rfc/rfc4443"},
+    {"name": "RFC 4861 — Neighbor Discovery for IPv6", "url": "https://www.rfc-editor.org/rfc/rfc4861"},
+    {"name": "RFC 3021 — Using 31-Bit Prefixes on IPv4 Point-to-Point Links", "url": "https://www.rfc-editor.org/rfc/rfc3021"},
+    {"name": "RFC 3927 — Dynamic Configuration of IPv4 Link-Local Addresses", "url": "https://www.rfc-editor.org/rfc/rfc3927"},
+    {"name": "RFC 5952 — A Recommendation for IPv6 Address Text Representation", "url": "https://www.rfc-editor.org/rfc/rfc5952"},
+    {"name": "IANA IPv4 Special-Purpose Address Registry", "url": "https://www.iana.org/assignments/iana-ipv4-special-registry/iana-ipv4-special-registry.xhtml"},
+    {"name": "IANA Protocol Numbers", "url": "https://www.iana.org/assignments/protocol-numbers/protocol-numbers.xhtml"},
+    {"name": "IEEE 802.3 Ethernet (overview / public summaries)", "url": "https://en.wikipedia.org/wiki/Ethernet_frame"},
+    {"name": "Cisco CCNA certification exam topics (public)", "url": "https://www.cisco.com/c/en/us/training-events/training-certifications/exams/current-list/ccna-200-301.html"},
+    {"name": "ITN v7.02 module list (public scope and sequence used to structure this app)",
+     "url": "https://netacad.fit.vutbr.cz/wp-content/uploads/ccna/itn/ITN%20v7.02%20Scope%20and%20Sequence.pdf"},
+]
+
+
+def validate():
+    ids = set()
+    errors = []
+    if len(MODULES) != 17:
+        errors.append(f"expected 17 modules, got {len(MODULES)}")
+    for m in MODULES:
+        if not m["cards"] or not m["quiz"]:
+            errors.append(f"{m['id']} missing cards or quiz")
+        if len(m["quiz"]) != 10:
+            errors.append(f"{m['id']} has {len(m['quiz'])} questions, expected 10")
+        for c in m["cards"]:
+            if c["id"] in ids:
+                errors.append("duplicate " + c["id"])
+            ids.add(c["id"])
+            if len(c["body"].strip()) < 40:
+                errors.append("short body " + c["id"])
+        for q in m["quiz"]:
+            if q["id"] in ids:
+                errors.append("duplicate " + q["id"])
+            ids.add(q["id"])
+            if len(q["options"]) != 4:
+                errors.append("options " + q["id"])
+            if not (0 <= q["answer"] < 4):
+                errors.append("answer " + q["id"])
+            # unique options
+            if len(set(q["options"])) != 4:
+                errors.append("duplicate options " + q["id"])
+            if len(q["why"].strip()) < 20:
+                errors.append("short why " + q["id"])
+    fc_ids = set()
+    for c in FLASHCARDS:
+        if c["id"] in fc_ids:
+            errors.append("duplicate flashcard " + c["id"])
+        fc_ids.add(c["id"])
+        if not c["front"] or not c["back"]:
+            errors.append("empty flashcard " + c["id"])
+    if errors:
+        raise SystemExit("content errors:\n" + "\n".join(errors))
+
+
+def main():
+    validate()
+    OUT.mkdir(exist_ok=True)
+    modules_doc = {
+        "title": "ITN Study",
+        "course": "CCNA v7 Introduction to Networks",
+        "due": "2027-02-28",
+        "disclaimer": "Personal study aid with original wording. Not affiliated with, or endorsed by, Cisco or Cisco Networking Academy. It does not copy NetAcad course text or exam questions.",
+        "modules": MODULES,
+        "sources": SOURCES,
+    }
+    cards_doc = {
+        "decks": [
+            {"id": "ports", "title": "Ports and protocols"},
+            {"id": "models", "title": "OSI and TCP/IP"},
+            {"id": "ios", "title": "IOS commands"},
+            {"id": "addressing", "title": "Addressing"},
+        ],
+        "cards": FLASHCARDS,
+    }
+    (OUT / "modules.json").write_text(json.dumps(modules_doc, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+    (OUT / "flashcards.json").write_text(json.dumps(cards_doc, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+    print("modules", len(MODULES))
+    for m in MODULES:
+        print(f"  {m['id']}  cards={len(m['cards']):2d}  quiz={len(m['quiz']):2d}  {m['title']}")
+    print("flashcards", len(FLASHCARDS))
+    from collections import Counter
+    print("  by deck:", dict(Counter(c["deck"] for c in FLASHCARDS)))
+
+
+if __name__ == "__main__":
+    main()

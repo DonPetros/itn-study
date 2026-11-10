@@ -1,0 +1,488 @@
+{
+  "decks": [
+    {
+      "id": "ports",
+      "title": "Ports and protocols"
+    },
+    {
+      "id": "models",
+      "title": "OSI and TCP/IP"
+    },
+    {
+      "id": "ios",
+      "title": "IOS commands"
+    },
+    {
+      "id": "addressing",
+      "title": "Addressing"
+    }
+  ],
+  "cards": [
+    {
+      "id": "ports-001",
+      "deck": "ports",
+      "front": "Which port does SSH use, and over which transport?",
+      "back": "TCP 22",
+      "extra": "IANA service name: ssh."
+    },
+    {
+      "id": "ports-002",
+      "deck": "ports",
+      "front": "Which port does Telnet use?",
+      "back": "TCP 23",
+      "extra": "Clear text. Prefer SSH on a real network."
+    },
+    {
+      "id": "ports-003",
+      "deck": "ports",
+      "front": "FTP control and (active-mode) data ports?",
+      "back": "TCP 21 (control) and TCP 20 (data)",
+      "extra": "Passive mode negotiates a different data port."
+    },
+    {
+      "id": "ports-004",
+      "deck": "ports",
+      "front": "SMTP between mail servers typically uses which port?",
+      "back": "TCP 25",
+      "extra": "Client submission is often TCP 587, with implicit TLS sometimes on 465."
+    },
+    {
+      "id": "ports-005",
+      "deck": "ports",
+      "front": "DNS uses which port?",
+      "back": "UDP and TCP 53",
+      "extra": "Queries are usually UDP; TCP is used for large answers and zone transfers."
+    },
+    {
+      "id": "ports-006",
+      "deck": "ports",
+      "front": "DHCP server and client ports?",
+      "back": "UDP 67 (server) and UDP 68 (client)",
+      "extra": "These are the BOOTP ports that DHCP reused."
+    },
+    {
+      "id": "ports-007",
+      "deck": "ports",
+      "front": "TFTP uses which port?",
+      "back": "UDP 69",
+      "extra": "Simple, no login, often used in labs to copy images or configs."
+    },
+    {
+      "id": "ports-008",
+      "deck": "ports",
+      "front": "HTTP uses which port?",
+      "back": "TCP 80",
+      "extra": "Plain web traffic."
+    },
+    {
+      "id": "ports-009",
+      "deck": "ports",
+      "front": "HTTPS uses which port?",
+      "back": "TCP 443",
+      "extra": "HTTP inside a TLS session. The usual ITN answer is TCP 443."
+    },
+    {
+      "id": "ports-010",
+      "deck": "ports",
+      "front": "POP3 and its TLS wrapper?",
+      "back": "TCP 110 (POP3), TCP 995 (POP3S)",
+      "extra": "Used to collect mail, often downloading it from the server."
+    },
+    {
+      "id": "ports-011",
+      "deck": "ports",
+      "front": "IMAP and its TLS wrapper?",
+      "back": "TCP 143 (IMAP), TCP 993 (IMAPS)",
+      "extra": "Used to read mail that stays on the server."
+    },
+    {
+      "id": "ports-012",
+      "deck": "ports",
+      "front": "SNMP query and trap ports?",
+      "back": "UDP 161 (SNMP) and UDP 162 (SNMP traps)",
+      "extra": "Used to monitor and manage devices."
+    },
+    {
+      "id": "ports-013",
+      "deck": "ports",
+      "front": "NTP uses which port?",
+      "back": "UDP 123",
+      "extra": "Network Time Protocol, for clocks."
+    },
+    {
+      "id": "ports-014",
+      "deck": "ports",
+      "front": "What is the IANA well-known (system) port range?",
+      "back": "0–1023",
+      "extra": "Registered (user) ports are 1024–49151; dynamic ports are 49152–65535."
+    },
+    {
+      "id": "ports-015",
+      "deck": "ports",
+      "front": "What is the IANA registered (user) port range?",
+      "back": "1024–49151",
+      "extra": "Well-known: 0–1023. Dynamic: 49152–65535."
+    },
+    {
+      "id": "ports-016",
+      "deck": "ports",
+      "front": "What is the IANA dynamic / private port range?",
+      "back": "49152–65535",
+      "extra": "Clients usually pick a source port from the dynamic range (some operating systems use a wider ephemeral range)."
+    },
+    {
+      "id": "models-001",
+      "deck": "models",
+      "front": "Name the seven OSI layers, from Layer 7 down to Layer 1.",
+      "back": "Application, Presentation, Session, Transport, Network, Data link, Physical",
+      "extra": "A common memory aid is 'All People Seem To Need Data Processing'."
+    },
+    {
+      "id": "models-002",
+      "deck": "models",
+      "front": "What is the usual PDU name at the transport layer for TCP?",
+      "back": "Segment",
+      "extra": "UDP's PDU is often called a datagram."
+    },
+    {
+      "id": "models-003",
+      "deck": "models",
+      "front": "What is the usual PDU name at the network layer?",
+      "back": "Packet",
+      "extra": "IPv4 or IPv6 packet."
+    },
+    {
+      "id": "models-004",
+      "deck": "models",
+      "front": "What is the usual PDU name at the data link layer?",
+      "back": "Frame",
+      "extra": "For example an Ethernet frame."
+    },
+    {
+      "id": "models-005",
+      "deck": "models",
+      "front": "What is the usual PDU name at the physical layer?",
+      "back": "Bits",
+      "extra": "Electrical, light or radio signals."
+    },
+    {
+      "id": "models-006",
+      "deck": "models",
+      "front": "Name the four TCP/IP layers, top to bottom.",
+      "back": "Application, Transport, Internet, Network access",
+      "extra": "Network access is sometimes called the Link layer. It covers OSI Layers 1 and 2."
+    },
+    {
+      "id": "models-007",
+      "deck": "models",
+      "front": "Which OSI layers sit inside the TCP/IP application layer?",
+      "back": "Application, Presentation and Session (OSI 7, 6 and 5)"
+    },
+    {
+      "id": "models-008",
+      "deck": "models",
+      "front": "Which OSI layer uses IP addresses and chooses a path?",
+      "back": "Network (Layer 3)",
+      "extra": "Routers are the typical Layer 3 intermediary."
+    },
+    {
+      "id": "models-009",
+      "deck": "models",
+      "front": "Which OSI layer uses MAC addresses on an Ethernet LAN?",
+      "back": "Data link (Layer 2)",
+      "extra": "Switches are the typical Layer 2 intermediary."
+    },
+    {
+      "id": "models-010",
+      "deck": "models",
+      "front": "Which OSI layer uses port numbers?",
+      "back": "Transport (Layer 4)",
+      "extra": "TCP and UDP."
+    },
+    {
+      "id": "models-011",
+      "deck": "models",
+      "front": "Which OSI layer is concerned with cables, fibre, radio and signalling?",
+      "back": "Physical (Layer 1)",
+      "extra": "If the link light is off, start here."
+    },
+    {
+      "id": "models-012",
+      "deck": "models",
+      "front": "A Layer 2 switch forwards ordinary user frames based on what?",
+      "back": "Destination MAC addresses",
+      "extra": "It learns those mappings from the source MAC of incoming frames."
+    },
+    {
+      "id": "models-013",
+      "deck": "models",
+      "front": "As data goes down the stack, each layer adding a header is called…",
+      "back": "Encapsulation",
+      "extra": "The reverse, at the receiving end, is decapsulation."
+    },
+    {
+      "id": "ios-001",
+      "deck": "ios",
+      "front": "Which command moves you from user EXEC to privileged EXEC?",
+      "back": "enable",
+      "extra": "The prompt changes from > to #."
+    },
+    {
+      "id": "ios-002",
+      "deck": "ios",
+      "front": "Which command enters global configuration mode?",
+      "back": "configure terminal",
+      "extra": "Often abbreviated conf t. The prompt becomes (config)#."
+    },
+    {
+      "id": "ios-003",
+      "deck": "ios",
+      "front": "How do you set the device name to R1?",
+      "back": "hostname R1",
+      "extra": "This is a global configuration command."
+    },
+    {
+      "id": "ios-004",
+      "deck": "ios",
+      "front": "Which command sets a hashed secret for privileged EXEC?",
+      "back": "enable secret",
+      "extra": "Preferred over the older enable password command."
+    },
+    {
+      "id": "ios-005",
+      "deck": "ios",
+      "front": "What does service password-encryption do?",
+      "back": "Applies a weak, reversible (type 7) disguise to some plain passwords in the config file",
+      "extra": "It is not a substitute for enable secret or SSH."
+    },
+    {
+      "id": "ios-006",
+      "deck": "ios",
+      "front": "How do you enter console line configuration?",
+      "back": "line console 0",
+      "extra": "Then typically: password, and login."
+    },
+    {
+      "id": "ios-007",
+      "deck": "ios",
+      "front": "How do you enter the first sixteen VTY lines?",
+      "back": "line vty 0 15",
+      "extra": "Used for remote logins such as SSH."
+    },
+    {
+      "id": "ios-008",
+      "deck": "ios",
+      "front": "Which line command restricts remote access to SSH only?",
+      "back": "transport input ssh",
+      "extra": "Use this instead of Telnet on a network you care about."
+    },
+    {
+      "id": "ios-009",
+      "deck": "ios",
+      "front": "How do you enable a Cisco router interface that is administratively down?",
+      "back": "no shutdown",
+      "extra": "Router interfaces are often shutdown by default; switch ports are usually not."
+    },
+    {
+      "id": "ios-010",
+      "deck": "ios",
+      "front": "How do you set an IPv4 address on an interface?",
+      "back": "ip address <address> <mask>",
+      "extra": "Example: ip address 192.168.1.1 255.255.255.0"
+    },
+    {
+      "id": "ios-011",
+      "deck": "ios",
+      "front": "Which command gives a Layer 2 switch a default gateway for management traffic?",
+      "back": "ip default-gateway <address>",
+      "extra": "A router uses a default route instead: ip route 0.0.0.0 0.0.0.0 <next-hop>."
+    },
+    {
+      "id": "ios-012",
+      "deck": "ios",
+      "front": "How do you add an IPv4 default route?",
+      "back": "ip route 0.0.0.0 0.0.0.0 <next-hop-or-exit-interface>",
+      "extra": "This is the 'if nothing else matches, send it here' route."
+    },
+    {
+      "id": "ios-013",
+      "deck": "ios",
+      "front": "Which global command lets a router forward IPv6 traffic?",
+      "back": "ipv6 unicast-routing",
+      "extra": "Without this, the device will not route other people's IPv6 packets."
+    },
+    {
+      "id": "ios-014",
+      "deck": "ios",
+      "front": "How do you assign an IPv6 GUA on an interface?",
+      "back": "ipv6 address <address>/<prefix>",
+      "extra": "Example: ipv6 address 2001:db8:1:1::1/64"
+    },
+    {
+      "id": "ios-015",
+      "deck": "ios",
+      "front": "Which command saves the running configuration to NVRAM?",
+      "back": "copy running-config startup-config",
+      "extra": "Sometimes still written as write memory. Without this, a reload forgets your changes."
+    },
+    {
+      "id": "ios-016",
+      "deck": "ios",
+      "front": "Which command shows a short table of interfaces, IPv4 addresses and up/down state?",
+      "back": "show ip interface brief",
+      "extra": "Often abbreviated show ip int br."
+    },
+    {
+      "id": "ios-017",
+      "deck": "ios",
+      "front": "Which command displays the IPv4 routing table?",
+      "back": "show ip route",
+      "extra": "C = connected, L = local, S = static, among other codes."
+    },
+    {
+      "id": "ios-018",
+      "deck": "ios",
+      "front": "Which command displays the IPv4 ARP table?",
+      "back": "show ip arp",
+      "extra": "On a Windows host the similar command is arp -a."
+    },
+    {
+      "id": "ios-019",
+      "deck": "ios",
+      "front": "Which command displays the MAC address table on a switch?",
+      "back": "show mac address-table",
+      "extra": "Some older releases use show mac-address-table."
+    },
+    {
+      "id": "ios-020",
+      "deck": "ios",
+      "front": "Which command shows the live configuration in RAM?",
+      "back": "show running-config",
+      "extra": "show startup-config shows what will load after a reload."
+    },
+    {
+      "id": "ios-021",
+      "deck": "ios",
+      "front": "Which command shows the software version and uptime?",
+      "back": "show version"
+    },
+    {
+      "id": "ios-022",
+      "deck": "ios",
+      "front": "What does Ctrl+Z (or the end command) do?",
+      "back": "Returns you to privileged EXEC from a config mode",
+      "extra": "exit moves up one mode only."
+    },
+    {
+      "id": "ios-023",
+      "deck": "ios",
+      "front": "How do you enter interface configuration for GigabitEthernet0/0/0?",
+      "back": "interface GigabitEthernet0/0/0",
+      "extra": "The exact name depends on the platform (Gi0/1, G0/0/0, and so on)."
+    },
+    {
+      "id": "ios-024",
+      "deck": "ios",
+      "front": "What is the usual command to test basic IP reachability?",
+      "back": "ping <address>",
+      "extra": "On IOS, ! means a reply and . means a timeout."
+    },
+    {
+      "id": "ios-025",
+      "deck": "ios",
+      "front": "Which command traces the hop-by-hop path from a Cisco device?",
+      "back": "traceroute <address>",
+      "extra": "Windows uses tracert, and typically sends ICMP rather than UDP probes."
+    },
+    {
+      "id": "addressing-001",
+      "deck": "addressing",
+      "front": "List the three RFC 1918 private IPv4 blocks.",
+      "back": "10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16",
+      "extra": "172.16.0.0/12 covers 172.16.0.0–172.31.255.255."
+    },
+    {
+      "id": "addressing-002",
+      "deck": "addressing",
+      "front": "What IPv4 range is loopback?",
+      "back": "127.0.0.0/8",
+      "extra": "127.0.0.1 is the address people actually type."
+    },
+    {
+      "id": "addressing-003",
+      "deck": "addressing",
+      "front": "What IPv4 range is link-local / APIPA?",
+      "back": "169.254.0.0/16",
+      "extra": "A host often falls back to this when DHCP fails."
+    },
+    {
+      "id": "addressing-004",
+      "deck": "addressing",
+      "front": "What IPv4 range is multicast?",
+      "back": "224.0.0.0/4 (224.0.0.0–239.255.255.255)"
+    },
+    {
+      "id": "addressing-005",
+      "deck": "addressing",
+      "front": "How many usable hosts in a /24, using the usual − 2 rule?",
+      "back": "254",
+      "extra": "256 addresses in total, minus network and broadcast."
+    },
+    {
+      "id": "addressing-006",
+      "deck": "addressing",
+      "front": "How many usable hosts in a /27, using the usual − 2 rule?",
+      "back": "30",
+      "extra": "32 addresses in total, minus 2."
+    },
+    {
+      "id": "addressing-007",
+      "deck": "addressing",
+      "front": "How many usable hosts in a /30, using the usual − 2 rule?",
+      "back": "2",
+      "extra": "Used for many IPv4 point-to-point links. /31 (RFC 3021) is the two-address alternative."
+    },
+    {
+      "id": "addressing-008",
+      "deck": "addressing",
+      "front": "What is the dotted mask for a /27?",
+      "back": "255.255.255.224",
+      "extra": "Block size 32 in the last octet."
+    },
+    {
+      "id": "addressing-009",
+      "deck": "addressing",
+      "front": "What is the IPv6 loopback address?",
+      "back": "::1",
+      "extra": "The unspecified address is :: ."
+    },
+    {
+      "id": "addressing-010",
+      "deck": "addressing",
+      "front": "What prefix is used for IPv6 link-local addresses?",
+      "back": "fe80::/10",
+      "extra": "A link-local address is required on every working IPv6 interface."
+    },
+    {
+      "id": "addressing-011",
+      "deck": "addressing",
+      "front": "What prefix currently covers IPv6 global unicast?",
+      "back": "2000::/3",
+      "extra": "Unique local is fc00::/7; multicast is ff00::/8."
+    },
+    {
+      "id": "addressing-012",
+      "deck": "addressing",
+      "front": "Does IPv6 have a broadcast address?",
+      "back": "No. IPv6 uses multicast (and unicast) instead.",
+      "extra": "ff02::1 is all nodes on the link; ff02::2 is all routers on the link."
+    },
+    {
+      "id": "addressing-013",
+      "deck": "addressing",
+      "front": "What prefix length is usual for an IPv6 LAN so that SLAAC can work?",
+      "back": "/64",
+      "extra": "You subnet IPv6 in the bits to the left of those 64, not by borrowing host bits as in IPv4."
+    }
+  ]
+}
