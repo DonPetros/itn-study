@@ -1,0 +1,8 @@
+.DS_Store
+Thumbs.db
+*.log
+.env
+node_modules/
+screens/
+tests/node_modules/
+tests/package-lock.json
