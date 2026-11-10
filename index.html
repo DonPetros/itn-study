@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>ITN Study</title>
+<meta name="description" content="Bite-size study app for CCNA v7 Introduction to Networks. Personal study aid, not affiliated with Cisco.">
+<meta name="theme-color" content="#f4f1ea">
+<meta name="color-scheme" content="light dark">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="ITN Study">
+<meta name="format-detection" content="telephone=no">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" sizes="180x180" href="icons/icon-180.png">
+<link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
+<link rel="preload" href="fonts/inter.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="fonts/jetbrains-mono.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+<div id="app">
+  <main id="view" tabindex="-1"></main>
+  <nav id="tabbar" aria-label="Main">
+    <a href="#/" data-tab="learn"><span class="ti" aria-hidden="true">01</span><span>Learn</span></a>
+    <a href="#/drill" data-tab="drill"><span class="ti" aria-hidden="true">02</span><span>Drill</span></a>
+    <a href="#/cards" data-tab="cards"><span class="ti" aria-hidden="true">03</span><span>Cards</span></a>
+    <a href="#/focus" data-tab="focus"><span class="ti" aria-hidden="true">04</span><span>Focus</span></a>
+  </nav>
+</div>
+<div id="modal" class="modal" hidden></div>
+<noscript><p class="noscript">ITN Study needs JavaScript turned on.</p></noscript>
+<script src="js/subnet.js"></script>
+<script src="js/storage.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,14 @@
+{
+  "name": "itn-study-tests",
+  "version": "1.0.0",
+  "description": "Tests for ITN Study (subnet math, content, and a headless smoke run).",
+  "scripts": {
+    "test": "node subnet.test.js && node content.test.js",
+    "smoke": "node smoke.js"
+  },
+  "type": "commonjs",
+  "dependencies": {
+    "puppeteer-core": "^25.17.0"
+  },
+  "private": true
+}
